@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Playfair_Display, Inter, Noto_Sans_KR, Noto_Serif_KR } from "next/font/google";
 import "./globals.css";
 
@@ -78,6 +79,15 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/site.webmanifest" />
+        <Script async src="https://www.googletagmanager.com/gtag/js?id=G-4G5ML90JFM" />
+        <Script id="gtag-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-4G5ML90JFM');
+          `}
+        </Script>
       </head>
       <body
         className={`${playfair.variable} ${inter.variable} ${notoSans.variable} ${notoSerif.variable} antialiased`}
