@@ -26,14 +26,14 @@ export default function Home() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="font-serif text-2xl sm:text-3xl font-semibold text-foreground">
-                  로판 네임 아틀리에
+                  로판 아틀리에
                 </h1>
                 <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-amber-100 text-amber-700 border border-amber-200">
                   Beta
                 </span>
               </div>
               <p className="text-sm text-[var(--text-muted)] mt-1">
-                당신의 세계를 위한 이름과 가문을 만듭니다
+                당신의 세계를 위한 이름과 설정을 빚어드립니다.
               </p>
             </div>
             <div className="text-[var(--accent)] text-2xl">✧</div>

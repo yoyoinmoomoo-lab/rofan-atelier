@@ -1,7 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { GenerateNamesRequest, NameResult } from "../types";
+import type {
+  GenerateNamesRequest,
+  NameResult,
+  Culture,
+  Gender,
+  Class as ClassType,
+  Era,
+} from "../types";
 import { CULTURE_OPTIONS, GENDER_OPTIONS, CLASS_OPTIONS, ERA_OPTIONS } from "../constants";
 import LoadingSpinner from "./LoadingSpinner";
 
@@ -78,7 +85,9 @@ export default function NameGenerator({ onCopy }: NameGeneratorProps) {
             </label>
             <select
               value={formData.culture}
-              onChange={(e) => setFormData({ ...formData, culture: e.target.value as any })}
+              onChange={(e) =>
+                setFormData({ ...formData, culture: e.target.value as Culture })
+              }
               className="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg bg-white text-foreground focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
             >
               {CULTURE_OPTIONS.map((opt) => (
@@ -95,7 +104,9 @@ export default function NameGenerator({ onCopy }: NameGeneratorProps) {
             </label>
             <select
               value={formData.gender}
-              onChange={(e) => setFormData({ ...formData, gender: e.target.value as any })}
+              onChange={(e) =>
+                setFormData({ ...formData, gender: e.target.value as Gender })
+              }
               className="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg bg-white text-foreground focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
             >
               {GENDER_OPTIONS.map((opt) => (
@@ -112,7 +123,9 @@ export default function NameGenerator({ onCopy }: NameGeneratorProps) {
             </label>
             <select
               value={formData.class}
-              onChange={(e) => setFormData({ ...formData, class: e.target.value as any })}
+              onChange={(e) =>
+                setFormData({ ...formData, class: e.target.value as ClassType })
+              }
               className="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg bg-white text-foreground focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
             >
               {CLASS_OPTIONS.map((opt) => (
@@ -129,7 +142,7 @@ export default function NameGenerator({ onCopy }: NameGeneratorProps) {
             </label>
             <select
               value={formData.era}
-              onChange={(e) => setFormData({ ...formData, era: e.target.value as any })}
+              onChange={(e) => setFormData({ ...formData, era: e.target.value as Era })}
               className="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg bg-white text-foreground focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
             >
               {ERA_OPTIONS.map((opt) => (

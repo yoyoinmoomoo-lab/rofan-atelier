@@ -2,9 +2,14 @@ import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
+type FeedbackRequestBody = {
+  message?: string;
+  source?: string;
+};
+
 export async function POST(req: Request) {
   try {
-    const { message, source } = await req.json();
+    const { message, source } = (await req.json()) as FeedbackRequestBody;
     if (!message || message.trim().length < 3) {
       return NextResponse.json(
         { ok: false, error: "short" },
@@ -12,13 +17,13 @@ export async function POST(req: Request) {
       );
     }
 
-    // source에 따른 페이지 이름 매핑
-    const pageName = source === "rofan-atelier" ? "로판 네임 아틀리에" : "기타";
+    // 페이지 이름 고정
+    const pageName = "로판";
 
     // 하위 호환성: NOTION_FEEDBACK_SOURCE 또는 NOTION_FEEDBACK_DB 둘 다 지원
     const dataSourceId = (process.env.NOTION_FEEDBACK_SOURCE || process.env.NOTION_FEEDBACK_DB)?.trim();
     const token = process.env.NOTION_TOKEN?.trim();
-    const templateId = process.env.NOTION_FEEDBACK_TEMPLATE_ID?.trim();
+    const templateId = process.env.NOTION_FEEDBACK_TEMPLATE?.trim();
 
     if (!dataSourceId || !token || dataSourceId.length === 0 || token.length === 0) {
       return NextResponse.json(
@@ -38,7 +43,7 @@ export async function POST(req: Request) {
     const ua = req.headers.get("user-agent") || "";
     const referer = req.headers.get("referer") || "";
 
-    const body: any = {
+    const notionPayload = {
       parent: {
         type: "data_source_id",
         data_source_id: dataSourceId,
@@ -71,7 +76,7 @@ export async function POST(req: Request) {
         "Content-Type": "application/json",
         "Notion-Version": "2025-09-03",
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(notionPayload),
     });
 
     if (!res.ok) {
@@ -80,11 +85,9 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ ok: true });
-  } catch (e: any) {
-    return NextResponse.json(
-      { ok: false, error: String(e) },
-      { status: 500 }
-    );
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    return NextResponse.json({ ok: false, error: errorMessage }, { status: 500 });
   }
 }
 

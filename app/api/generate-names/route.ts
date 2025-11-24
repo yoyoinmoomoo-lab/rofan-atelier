@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
-import { GenerateNamesRequest } from "@/app/types";
+import { GenerateNamesRequest, NameResult } from "@/app/types";
+import { jsonrepair } from "jsonrepair";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -144,16 +145,25 @@ JSON만 출력합니다. 다른 텍스트는 절대 포함하지 마세요.`;
         response_format: { type: "json_object" },
         max_tokens: 2000,
       });
-    } catch (apiError: any) {
+    } catch (apiError: unknown) {
       console.error("OpenAI API 에러:", apiError);
-      if (apiError.status === 401) {
+      const status =
+        typeof apiError === "object" && apiError !== null && "status" in apiError
+          ? (apiError as { status?: number }).status
+          : undefined;
+      const message =
+        typeof apiError === "object" && apiError !== null && "message" in apiError
+          ? String((apiError as { message?: string }).message)
+          : "알 수 없는 오류";
+
+      if (status === 401) {
         throw new Error("OpenAI API 키가 유효하지 않습니다.");
-      } else if (apiError.status === 429) {
+      } else if (status === 429) {
         throw new Error("API 사용량이 초과되었습니다. 잠시 후 다시 시도해주세요.");
-      } else if (apiError.status === 500) {
+      } else if (status === 500) {
         throw new Error("OpenAI 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
       }
-      throw new Error(`OpenAI API 호출 실패: ${apiError.message || "알 수 없는 오류"}`);
+      throw new Error(`OpenAI API 호출 실패: ${message}`);
     }
 
     const content = completion.choices[0]?.message?.content;
@@ -164,7 +174,7 @@ JSON만 출력합니다. 다른 텍스트는 절대 포함하지 마세요.`;
 
     let parsed;
     try {
-      parsed = JSON.parse(content);
+      parsed = JSON.parse(jsonrepair(content));
     } catch (parseError) {
       console.error("JSON 파싱 에러:", parseError);
       console.error("응답 내용:", content);
@@ -178,14 +188,16 @@ JSON만 출력합니다. 다른 텍스트는 절대 포함하지 마세요.`;
     }
 
     // 각 이름의 필수 필드 검증 및 기본값 설정
-    parsed.names = parsed.names.map((n: any) => {
-      const name = {
-        korean: n.korean || "",
-        roman: n.roman || "",
-        classTone: n.classTone || `${classLabel}풍`,
-        nicknameRoman: body.includeNickname ? (n.nicknameRoman || "") : "",
-        nicknameKorean: body.includeNickname ? (n.nicknameKorean || "") : "",
-        desc: n.desc || "",
+    parsed.names = parsed.names.map((n: Partial<NameResult>) => {
+      const name: NameResult = {
+        korean: typeof n.korean === "string" ? n.korean : "",
+        roman: typeof n.roman === "string" ? n.roman : "",
+        classTone: typeof n.classTone === "string" ? n.classTone : `${classLabel}풍`,
+        nicknameRoman:
+          body.includeNickname && typeof n.nicknameRoman === "string" ? n.nicknameRoman : "",
+        nicknameKorean:
+          body.includeNickname && typeof n.nicknameKorean === "string" ? n.nicknameKorean : "",
+        desc: typeof n.desc === "string" ? n.desc : "",
       };
       
       // 필수 필드 검증

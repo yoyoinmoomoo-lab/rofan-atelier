@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { GenerateFamiliesRequest, FamilyResult } from "../types";
+import type {
+  GenerateFamiliesRequest,
+  FamilyResult,
+  Culture,
+  Class as ClassType,
+  Era,
+} from "../types";
 import { CULTURE_OPTIONS, CLASS_OPTIONS, ERA_OPTIONS } from "../constants";
 import LoadingSpinner from "./LoadingSpinner";
 
@@ -69,7 +75,9 @@ export default function FamilyGenerator({ onCopy }: FamilyGeneratorProps) {
             </label>
             <select
               value={formData.culture}
-              onChange={(e) => setFormData({ ...formData, culture: e.target.value as any })}
+              onChange={(e) =>
+                setFormData({ ...formData, culture: e.target.value as Culture })
+              }
               className="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg bg-white text-foreground focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
             >
               {CULTURE_OPTIONS.map((opt) => (
@@ -86,7 +94,9 @@ export default function FamilyGenerator({ onCopy }: FamilyGeneratorProps) {
             </label>
             <select
               value={formData.class}
-              onChange={(e) => setFormData({ ...formData, class: e.target.value as any })}
+              onChange={(e) =>
+                setFormData({ ...formData, class: e.target.value as ClassType })
+              }
               className="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg bg-white text-foreground focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
             >
               {CLASS_OPTIONS.map((opt) => (
@@ -103,7 +113,7 @@ export default function FamilyGenerator({ onCopy }: FamilyGeneratorProps) {
             </label>
             <select
               value={formData.era}
-              onChange={(e) => setFormData({ ...formData, era: e.target.value as any })}
+              onChange={(e) => setFormData({ ...formData, era: e.target.value as Era })}
               className="w-full px-4 py-2 border border-[var(--card-border)] rounded-lg bg-white text-foreground focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
             >
               {ERA_OPTIONS.map((opt) => (

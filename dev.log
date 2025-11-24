@@ -1,0 +1,23 @@
+
+> rofan-atelier@0.1.0 dev
+> next dev -p 3001
+
+   ▲ Next.js 16.0.3 (Turbopack)
+   - Local:         http://localhost:3001
+   - Network:       http://192.168.45.71:3001
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 623ms
+ ○ Compiling / ...
+ GET / 200 in 3.3s (compile: 3.3s, render: 80ms)
+ POST /api/generate-families 200 in 13.0s (compile: 424ms, render: 12.6s)
+ POST /api/generate-families 200 in 14.7s (compile: 3ms, render: 14.7s)
+ POST /api/generate-families 200 in 5.1s (compile: 39ms, render: 5.1s)
+ POST /api/generate-families 200 in 12.8s (compile: 9ms, render: 12.8s)
+ ✓ Compiled in 129ms
+ POST /api/feedback 500 in 181ms (compile: 169ms, render: 12ms)
+   Reload env: .env.local
+ GET / 200 in 111ms (compile: 78ms, render: 33ms)
+ POST /api/feedback 500 in 117ms (compile: 108ms, render: 9ms)
+ POST /api/feedback 200 in 1222ms (compile: 119ms, render: 1104ms)
