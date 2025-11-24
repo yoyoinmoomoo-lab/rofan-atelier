@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     siteName: "Rofan Atelier",
     images: [
       {
-        url: "/og-rofan.png",
+        url: "/ogimage.png",
         width: 1200,
         height: 630,
       },
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Rofan Atelier",
     description: "한국 웹소설 작가를 위한 로맨스 판타지 이름·가문 생성 도구.",
-    images: ["/og-rofan.png"],
+    images: ["/ogimage.png"],
   },
   icons: {
     icon: [
