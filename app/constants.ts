@@ -19,7 +19,6 @@ export const ERA_OPTIONS: { value: Era; label: string }[] = [
 
 // 계급 옵션
 export const CLASS_OPTIONS: { value: Class; label: string }[] = [
-  { value: "royal", label: "왕족" },
   { value: "noble", label: "귀족" },
   { value: "commoner", label: "서민" },
 ];

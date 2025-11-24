@@ -5,7 +5,7 @@ export type Culture = "anglo" | "france" | "germanic" | "slavic" | "latin" | "gr
 export type Era = "medieval" | "romantic" | "modern19";
 
 // 계급 타입
-export type Class = "royal" | "noble" | "commoner";
+export type Class = "noble" | "commoner";
 
 // 성별 타입
 export type Gender = "female" | "male";

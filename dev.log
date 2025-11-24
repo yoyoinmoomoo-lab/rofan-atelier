@@ -21,3 +21,14 @@
  GET / 200 in 111ms (compile: 78ms, render: 33ms)
  POST /api/feedback 500 in 117ms (compile: 108ms, render: 9ms)
  POST /api/feedback 200 in 1222ms (compile: 119ms, render: 1104ms)
+ ✓ Compiled in 201ms
+ ✓ Compiled in 115ms
+ GET / 200 in 287ms (compile: 212ms, render: 75ms)
+ GET / 200 in 77ms (compile: 48ms, render: 30ms)
+ GET / 200 in 97ms (compile: 16ms, render: 80ms)
+ GET / 200 in 39ms (compile: 4ms, render: 35ms)
+ GET / 200 in 49ms (compile: 12ms, render: 36ms)
+ GET / 200 in 111ms (compile: 52ms, render: 59ms)
+ GET / 200 in 87ms (compile: 34ms, render: 53ms)
+ GET / 200 in 49ms (compile: 14ms, render: 36ms)
+ GET / 200 in 71ms (compile: 9ms, render: 62ms)

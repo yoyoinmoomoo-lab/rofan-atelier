@@ -1,0 +1,20 @@
+{
+    "name": "Rofan Atelier",
+    "short_name": "Rofan",
+    "description": "로맨스 판타지 세계관 작가들을 위한 이름·가문명 생성 도구",
+    "icons": [
+      {
+        "src": "/android-chrome-192x192.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "/android-chrome-512x512.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ],
+    "theme_color": "#E6DCC3",
+    "background_color": "#F7F5F2",
+    "display": "standalone"
+  }
