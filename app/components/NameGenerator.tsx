@@ -11,6 +11,7 @@ import type {
 } from "../types";
 import { CULTURE_OPTIONS, GENDER_OPTIONS, CLASS_OPTIONS, ERA_OPTIONS } from "../constants";
 import LoadingSpinner from "./LoadingSpinner";
+import { trackGtagEvent } from "../../lib/gtag";
 
 interface NameGeneratorProps {
   onCopy: (message: string) => void;
@@ -33,6 +34,7 @@ export default function NameGenerator({ onCopy }: NameGeneratorProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    trackGtagEvent("click_generate_name", "generate_button", "generate_10_names");
     setLoading(true);
     setError(null);
 

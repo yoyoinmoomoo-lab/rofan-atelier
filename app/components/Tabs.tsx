@@ -1,4 +1,6 @@
-"use client";
+ "use client";
+
+import { trackGtagEvent } from "../../lib/gtag";
 
 interface TabsProps {
   activeTab: "names" | "families";
@@ -6,10 +8,19 @@ interface TabsProps {
 }
 
 export default function Tabs({ activeTab, onTabChange }: TabsProps) {
+  const handleNamesTabClick = () => {
+    trackGtagEvent("click_tab_name", "tab", "tab_name_generator");
+    onTabChange("names");
+  };
+
+  const handleFamiliesTabClick = () => {
+    trackGtagEvent("click_tab_family", "tab", "tab_family_generator");
+    onTabChange("families");
+  };
   return (
     <div className="flex gap-2 mb-8 border-b border-[var(--card-border)]/30">
       <button
-        onClick={() => onTabChange("names")}
+        onClick={handleNamesTabClick}
         className={`px-6 py-3 font-medium text-sm transition-colors relative ${
           activeTab === "names"
             ? "text-foreground"
@@ -22,7 +33,7 @@ export default function Tabs({ activeTab, onTabChange }: TabsProps) {
         )}
       </button>
       <button
-        onClick={() => onTabChange("families")}
+        onClick={handleFamiliesTabClick}
         className={`px-6 py-3 font-medium text-sm transition-colors relative ${
           activeTab === "families"
             ? "text-foreground"

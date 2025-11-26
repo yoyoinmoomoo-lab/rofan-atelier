@@ -10,6 +10,7 @@ import type {
 } from "../types";
 import { CULTURE_OPTIONS, CLASS_OPTIONS, ERA_OPTIONS } from "../constants";
 import LoadingSpinner from "./LoadingSpinner";
+import { trackGtagEvent } from "../../lib/gtag";
 
 interface FamilyGeneratorProps {
   onCopy: (message: string) => void;
@@ -30,6 +31,7 @@ export default function FamilyGenerator({ onCopy }: FamilyGeneratorProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    trackGtagEvent("click_generate_family", "generate_button", "generate_10_family_names");
     setLoading(true);
     setError(null);
 
