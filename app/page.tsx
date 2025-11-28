@@ -8,6 +8,7 @@ import FamilyGenerator from "./components/FamilyGenerator";
 import Toast from "./components/Toast";
 import FeedbackBox from "./components/FeedbackBox";
 import LanguageSelector from "./components/LanguageSelector";
+import LoadingFallback from "./components/LoadingFallback";
 import type { LangCode } from "./types";
 import { getInitialLang } from "./utils/langUtils";
 import { getUIText } from "./i18n/uiText";
@@ -48,13 +49,16 @@ function HomeContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
-  // 언어 변경 핸들러: localStorage + URL 업데이트
+  // 언어 변경 핸들러: localStorage + URL + 쿠키 업데이트
   const setLang = (newLang: LangCode) => {
     setLangState(newLang);
     
     if (typeof window !== "undefined") {
       // localStorage 저장
       window.localStorage.setItem("lang", newLang);
+      
+      // 쿠키 저장 (서버 사이드 렌더링에서 사용)
+      document.cookie = `lang=${newLang}; path=/; max-age=31536000; SameSite=Lax`;
       
       // URL 쿼리 업데이트 (기존 쿼리 파라미터 보존)
       const currentParams = new URLSearchParams(window.location.search);
@@ -73,8 +77,10 @@ function HomeContent() {
       {/* 헤더 */}
       <header className="border-b border-[var(--card-border)]/30 bg-[var(--card-bg)]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between gap-6">
-            <div>
+          {/* 모바일: 세로 배치, 데스크톱: 가로 배치 */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6">
+            {/* 타이틀 영역 */}
+            <div className="flex-1">
               <div className="flex items-center gap-2">
                 <h1 className="font-serif text-2xl sm:text-3xl font-semibold text-foreground">
                   {getUIText("appTitle", lang)}
@@ -87,9 +93,15 @@ function HomeContent() {
                 {getUIText("appSubtitle", lang)}
               </p>
             </div>
+            
+            {/* 언어 선택 영역 */}
             <div className="flex items-center gap-4">
-              <LanguageSelector currentLang={lang} onChange={setLang} />
-              <div className="text-[var(--accent)] text-2xl">✧</div>
+              <LanguageSelector 
+                currentLang={lang} 
+                onChange={setLang} 
+                currentPage={activeTab === "names" ? "given" : "family"}
+              />
+              <div className="text-[var(--accent)] text-2xl hidden md:block">✧</div>
             </div>
           </div>
         </div>
@@ -133,13 +145,18 @@ function HomeContent() {
   );
 }
 
+/**
+ * 루트 페이지 컴포넌트
+ * 
+ * Suspense fallback에서도 사용자의 언어 설정을 사용하도록
+ * LoadingFallback 컴포넌트를 사용합니다.
+ * 
+ * LoadingFallback은 URL 쿼리 파라미터 또는 localStorage에서
+ * 언어를 읽어서 해당 언어로 로딩 메시지를 표시합니다.
+ */
 export default function Home() {
   return (
-    <Suspense fallback={
-      <div className="flex flex-col min-h-screen bg-[var(--background)] items-center justify-center">
-        <div className="text-[var(--text-muted)]">Loading...</div>
-      </div>
-    }>
+    <Suspense fallback={<LoadingFallback />}>
       <HomeContent />
     </Suspense>
   );
