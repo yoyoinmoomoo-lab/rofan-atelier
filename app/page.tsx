@@ -1,16 +1,67 @@
-"use client";
+ "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Tabs from "./components/Tabs";
 import NameGenerator from "./components/NameGenerator";
 import FamilyGenerator from "./components/FamilyGenerator";
 import Toast from "./components/Toast";
 import FeedbackBox from "./components/FeedbackBox";
+import LanguageSelector from "./components/LanguageSelector";
+import type { LangCode } from "./types";
+import { getInitialLang } from "./utils/langUtils";
+import { getUIText } from "./i18n/uiText";
 
-export default function Home() {
+function HomeContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"names" | "families">("names");
   const [toastMessage, setToastMessage] = useState("");
   const [showToast, setShowToast] = useState(false);
+  
+  // 초기 lang 설정: URL > localStorage > 기본값
+  const urlLang = searchParams.get("lang");
+  const storageLang = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    return window.localStorage.getItem("lang");
+  }, []);
+  
+  const initialLang = useMemo(() => {
+    return getInitialLang(urlLang, storageLang);
+  }, [urlLang, storageLang]);
+  
+  const [lang, setLangState] = useState<LangCode>(initialLang);
+
+  // URL 변경 시 lang 동기화
+  useEffect(() => {
+    const currentUrlLang = searchParams.get("lang");
+    const currentStorageLang = typeof window !== "undefined" 
+      ? window.localStorage.getItem("lang") 
+      : null;
+    const newLang = getInitialLang(currentUrlLang, currentStorageLang);
+    if (newLang !== lang) {
+      setLangState(newLang);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("lang", newLang);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  // 언어 변경 핸들러: localStorage + URL 업데이트
+  const setLang = (newLang: LangCode) => {
+    setLangState(newLang);
+    
+    if (typeof window !== "undefined") {
+      // localStorage 저장
+      window.localStorage.setItem("lang", newLang);
+      
+      // URL 쿼리 업데이트 (기존 쿼리 파라미터 보존)
+      const currentParams = new URLSearchParams(window.location.search);
+      currentParams.set("lang", newLang);
+      router.replace(`?${currentParams.toString()}`, { scroll: false });
+    }
+  };
 
   const handleCopy = (message: string) => {
     setToastMessage(message);
@@ -22,38 +73,41 @@ export default function Home() {
       {/* 헤더 */}
       <header className="border-b border-[var(--card-border)]/30 bg-[var(--card-bg)]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-6">
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="font-serif text-2xl sm:text-3xl font-semibold text-foreground">
-                  로판 아틀리에
+                  {getUIText("appTitle", lang)}
                 </h1>
                 <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-amber-100 text-amber-700 border border-amber-200">
                   Beta
                 </span>
               </div>
               <p className="text-sm text-[var(--text-muted)] mt-1">
-                당신의 세계를 위한 이름과 설정을 빚어드립니다.
+                {getUIText("appSubtitle", lang)}
               </p>
             </div>
-            <div className="text-[var(--accent)] text-2xl">✧</div>
+            <div className="flex items-center gap-4">
+              <LanguageSelector currentLang={lang} onChange={setLang} />
+              <div className="text-[var(--accent)] text-2xl">✧</div>
+            </div>
           </div>
         </div>
       </header>
 
       {/* 메인 컨텐츠 */}
       <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-        <Tabs activeTab={activeTab} onTabChange={setActiveTab} />
+        <Tabs activeTab={activeTab} onTabChange={setActiveTab} lang={lang} />
 
         {activeTab === "names" ? (
-          <NameGenerator onCopy={handleCopy} />
+          <NameGenerator lang={lang} onCopy={handleCopy} />
         ) : (
-          <FamilyGenerator onCopy={handleCopy} />
+          <FamilyGenerator lang={lang} onCopy={handleCopy} />
         )}
 
         {/* 피드백 박스 */}
         <section className="mt-12 border-t border-[var(--card-border)]/30 pt-6">
-          <FeedbackBox source="rofan-atelier" />
+          <FeedbackBox source="rofan-atelier" lang={lang} />
         </section>
       </main>
 
@@ -61,10 +115,10 @@ export default function Home() {
       <footer className="border-t border-[var(--card-border)]/30 bg-[var(--card-bg)] mt-auto">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <p className="text-xs text-[var(--text-muted)] text-center">
-            Powered by OpenAI gpt-4o-mini · Beta
+            {getUIText("footerPoweredBy", lang)}
           </p>
           <p className="text-xs text-[var(--text-muted)] text-center mt-2">
-            한국 로판 작가를 위한 서양식 이름 생성 전용 · 결과는 테스트 중이며 부정확할 수 있습니다
+            {getUIText("footerDescription", lang)}
           </p>
         </div>
       </footer>
@@ -76,5 +130,17 @@ export default function Home() {
         onClose={() => setShowToast(false)}
       />
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col min-h-screen bg-[var(--background)] items-center justify-center">
+        <div className="text-[var(--text-muted)]">Loading...</div>
+      </div>
+    }>
+      <HomeContent />
+    </Suspense>
   );
 }

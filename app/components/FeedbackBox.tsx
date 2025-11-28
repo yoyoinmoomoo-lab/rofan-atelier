@@ -1,14 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import type { LangCode } from "../types";
+import { getUIText } from "../i18n/uiText";
 
 type FeedbackSource = "rofan-atelier" | "other";
 
 interface FeedbackBoxProps {
   source: FeedbackSource;
+  lang: LangCode;
 }
 
-export default function FeedbackBox({ source }: FeedbackBoxProps) {
+export default function FeedbackBox({ source, lang }: FeedbackBoxProps) {
   const [open, setOpen] = useState(false);
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,10 +36,10 @@ export default function FeedbackBox({ source }: FeedbackBoxProps) {
           setOpen(false);
         }, 2000);
       } else {
-        alert("전송에 실패했습니다. 잠시 후 다시 시도해주세요.");
+        alert(getUIText("feedbackError", lang));
       }
     } catch {
-      alert("전송에 실패했습니다. 잠시 후 다시 시도해주세요.");
+      alert(getUIText("feedbackError", lang));
     } finally {
       setLoading(false);
     }
@@ -48,7 +51,7 @@ export default function FeedbackBox({ source }: FeedbackBoxProps) {
         className="text-sm text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors"
         onClick={() => setOpen(!open)}
       >
-        💬 피드백 남기기
+        {getUIText("feedbackToggle", lang)}
       </button>
 
       {open && (
@@ -56,16 +59,16 @@ export default function FeedbackBox({ source }: FeedbackBoxProps) {
           <textarea
             className="w-full rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] p-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent"
             rows={4}
-            placeholder="불편한 점이나 개선 아이디어를 적어주세요."
+            placeholder={getUIText("feedbackPlaceholder", lang)}
             value={msg}
             onChange={(e) => setMsg(e.target.value)}
           />
           <div className="space-y-1">
             <p className="text-xs text-[var(--text-muted)]">
-              * 입력 내용은 제작자에게 익명으로 전달됩니다.
+              {getUIText("feedbackNoteAnonymous", lang)}
             </p>
             <p className="text-xs text-[var(--text-muted)]">
-              * 최소 3자 이상 입력해주세요.
+              {getUIText("feedbackNoteMinLength", lang)}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -74,11 +77,11 @@ export default function FeedbackBox({ source }: FeedbackBoxProps) {
               onClick={submit}
               disabled={loading || msg.trim().length < 3}
             >
-              {loading ? "전송 중…" : "피드백 보내기"}
+              {loading ? getUIText("feedbackSending", lang) : getUIText("feedbackSubmitButton", lang)}
             </button>
             {done && (
               <span className="text-sm text-green-600">
-                감사합니다! 잘 받았어요 🙏
+                {getUIText("feedbackSuccess", lang)}
               </span>
             )}
           </div>

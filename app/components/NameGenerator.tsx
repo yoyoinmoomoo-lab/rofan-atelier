@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type {
   GenerateNamesRequest,
   NameResult,
@@ -8,19 +8,38 @@ import type {
   Gender,
   Class as ClassType,
   Era,
+  LangCode,
 } from "../types";
 import { CULTURE_OPTIONS, GENDER_OPTIONS, CLASS_OPTIONS, ERA_OPTIONS } from "../constants";
 import LoadingSpinner from "./LoadingSpinner";
 import { trackGtagEvent } from "../../lib/gtag";
+import { getDisplayClassLabel } from "../utils/getDisplayClassLabel";
+import { getUIText } from "../i18n/uiText";
 
 interface NameGeneratorProps {
   onCopy: (message: string) => void;
+  lang: LangCode;
 }
 
 // 중복 제거를 위한 키 생성 함수
 const getNameKey = (name: NameResult) => `${name.korean}-${name.roman}`;
 
-export default function NameGenerator({ onCopy }: NameGeneratorProps) {
+const getDisplayName = (lang: LangCode, korean: string, roman: string) =>
+  lang === "en" ? roman : `${korean} / ${roman}`;
+
+const getDisplayNickname = (
+  lang: LangCode,
+  nicknameKorean?: string,
+  nicknameRoman?: string
+) => {
+  if (lang === "en") {
+    return nicknameRoman ?? "";
+  }
+  return [nicknameKorean, nicknameRoman].filter(Boolean).join(" / ");
+};
+
+export default function NameGenerator({ onCopy, lang }: NameGeneratorProps) {
+  const currentLang = lang;
   const [formData, setFormData] = useState<GenerateNamesRequest>({
     culture: "france",
     gender: "female",
@@ -32,6 +51,11 @@ export default function NameGenerator({ onCopy }: NameGeneratorProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    setNames([]);
+    setError(null);
+  }, [lang]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     trackGtagEvent("click_generate_name", "generate_button", "generate_10_names");
@@ -39,41 +63,46 @@ export default function NameGenerator({ onCopy }: NameGeneratorProps) {
     setError(null);
 
     try {
+      const requestBody = { ...formData, lang };
       const response = await fetch("/api/generate-names", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
-        throw new Error("이름 생성에 실패했습니다.");
+        throw new Error(getUIText("errorGenerateNames", currentLang));
       }
 
       const data = await response.json();
       setNames(data.names || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "이름 생성에 실패했습니다. 잠시 후 다시 시도해주세요.");
+      setError(err instanceof Error ? err.message : getUIText("errorGenerateNames", currentLang));
     } finally {
       setLoading(false);
     }
   };
 
   const copyName = (name: NameResult) => {
-    navigator.clipboard.writeText(name.korean);
-    onCopy("복사되었습니다 ✧");
+    const displayName = getDisplayName(currentLang, name.korean, name.roman);
+    navigator.clipboard.writeText(displayName);
+    onCopy(getUIText("copySuccessMessage", currentLang));
   };
 
   const copyFull = (name: NameResult) => {
-    let nicknameText = "";
-    if (name.nicknameRoman || name.nicknameKorean) {
-      const parts = [];
-      if (name.nicknameRoman) parts.push(name.nicknameRoman);
-      if (name.nicknameKorean) parts.push(name.nicknameKorean);
-      nicknameText = `\n애칭: ${parts.join(" / ")}`;
-    }
-    const text = `${name.korean} / ${name.roman} · ${name.classTone}${nicknameText}\n설명: ${name.desc}`;
+    const displayName = getDisplayName(currentLang, name.korean, name.roman);
+    const nicknameLabel = getDisplayNickname(
+      currentLang,
+      name.nicknameKorean,
+      name.nicknameRoman
+    );
+    const nicknameText = nicknameLabel 
+      ? `\n${getUIText("nicknameLabel", currentLang)} ${nicknameLabel}` 
+      : "";
+    const classLabel = getDisplayClassLabel(currentLang, formData.class);
+    const text = `${displayName} · ${classLabel}${nicknameText}\n${getUIText("descriptionLabel", currentLang)} ${name.desc}`;
     navigator.clipboard.writeText(text);
-    onCopy("복사되었습니다 ✧");
+    onCopy(getUIText("copySuccessMessage", currentLang));
   };
 
   return (
@@ -83,7 +112,7 @@ export default function NameGenerator({ onCopy }: NameGeneratorProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
-              문화권
+              {getUIText("cultureLabel", currentLang)}
             </label>
             <select
               value={formData.culture}
@@ -94,7 +123,7 @@ export default function NameGenerator({ onCopy }: NameGeneratorProps) {
             >
               {CULTURE_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
-                  {opt.label}
+                  {opt.label[currentLang] ?? opt.label.ko}
                 </option>
               ))}
             </select>
@@ -102,7 +131,7 @@ export default function NameGenerator({ onCopy }: NameGeneratorProps) {
 
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
-              성별
+              {getUIText("genderLabel", currentLang)}
             </label>
             <select
               value={formData.gender}
@@ -113,7 +142,7 @@ export default function NameGenerator({ onCopy }: NameGeneratorProps) {
             >
               {GENDER_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
-                  {opt.label}
+                  {opt.label[currentLang] ?? opt.label.ko}
                 </option>
               ))}
             </select>
@@ -121,7 +150,7 @@ export default function NameGenerator({ onCopy }: NameGeneratorProps) {
 
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
-              계급
+              {getUIText("classLabel", currentLang)}
             </label>
             <select
               value={formData.class}
@@ -132,7 +161,7 @@ export default function NameGenerator({ onCopy }: NameGeneratorProps) {
             >
               {CLASS_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
-                  {opt.label}
+                  {opt.label[currentLang] ?? opt.label.ko}
                 </option>
               ))}
             </select>
@@ -140,7 +169,7 @@ export default function NameGenerator({ onCopy }: NameGeneratorProps) {
 
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
-              시대감
+              {getUIText("eraLabel", currentLang)}
             </label>
             <select
               value={formData.era}
@@ -149,7 +178,7 @@ export default function NameGenerator({ onCopy }: NameGeneratorProps) {
             >
               {ERA_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
-                  {opt.label}
+                  {opt.label[currentLang] ?? opt.label.ko}
                 </option>
               ))}
             </select>
@@ -165,7 +194,7 @@ export default function NameGenerator({ onCopy }: NameGeneratorProps) {
             className="w-4 h-4 text-[var(--accent)] border-[var(--card-border)] rounded focus:ring-[var(--accent)]"
           />
           <label htmlFor="includeNickname" className="text-sm text-foreground">
-            애칭 포함하기
+            {getUIText("includeNicknameLabel", currentLang)}
           </label>
         </div>
 
@@ -174,7 +203,7 @@ export default function NameGenerator({ onCopy }: NameGeneratorProps) {
           disabled={loading}
           className="px-8 py-3 bg-[var(--accent)] text-white rounded-lg font-medium hover:bg-[var(--accent)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? "생성 중..." : "이름 10개 생성하기"}
+          {loading ? getUIText("generatingText", currentLang) : getUIText("generateNamesButton", currentLang)}
         </button>
       </form>
 
@@ -191,57 +220,59 @@ export default function NameGenerator({ onCopy }: NameGeneratorProps) {
       {/* 결과 리스트 - 단일 열 리스트형 */}
       {!loading && names.length > 0 && (
         <div className="space-y-4">
-          {names.map((name, index) => (
-            <div
-              key={`${getNameKey(name)}-${index}`}
-              className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg px-4 py-3"
-            >
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                <div className="flex-1 space-y-2">
-                  <div>
-                    <span className="font-serif text-lg font-semibold text-foreground">
-                      {name.korean}
-                    </span>
-                    {" / "}
-                    <span className="text-sm text-[var(--text-muted)]">
-                      {name.roman}
-                    </span>
-                    <span className="ml-2 text-xs text-[var(--accent)]">
-                      · {name.classTone}
-                    </span>
-                  </div>
+          {names.map((name, index) => {
+            const displayName = getDisplayName(currentLang, name.korean, name.roman);
+            const displayNickname = getDisplayNickname(
+              currentLang,
+              name.nicknameKorean,
+              name.nicknameRoman
+            );
 
-                  {(name.nicknameRoman || name.nicknameKorean) && (
-                    <div className="text-sm text-foreground">
-                      <span className="font-medium">애칭:</span>{" "}
-                      {name.nicknameRoman && name.nicknameKorean
-                        ? `${name.nicknameRoman} / ${name.nicknameKorean}`
-                        : name.nicknameRoman || name.nicknameKorean}
+            return (
+              <div
+                key={`${getNameKey(name)}-${index}`}
+                className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg px-4 py-3"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                  <div className="flex-1 space-y-2">
+                    <div>
+                      <span className="font-serif text-lg font-semibold text-foreground">
+                        {displayName}
+                      </span>
+                      <span className="ml-2 text-xs text-[var(--accent)]">
+                        · {getDisplayClassLabel(currentLang, formData.class)}
+                      </span>
                     </div>
-                  )}
 
-                  <div className="text-sm text-[var(--text-muted)] leading-relaxed">
-                    {name.desc}
+                    {displayNickname && (
+                      <div className="text-sm text-foreground">
+                        <span className="font-medium">{getUIText("nicknameLabel", currentLang)}</span> {displayNickname}
+                      </div>
+                    )}
+
+                    <div className="text-sm text-[var(--text-muted)] leading-relaxed">
+                      {name.desc}
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex gap-2 flex-shrink-0">
-                  <button
-                    onClick={() => copyName(name)}
-                    className="px-4 py-2 text-sm border border-[var(--card-border)] rounded-lg hover:bg-[var(--accent-light)]/20 transition-colors whitespace-nowrap"
-                  >
-                    이름만 복사
-                  </button>
-                  <button
-                    onClick={() => copyFull(name)}
-                    className="px-4 py-2 text-sm border border-[var(--card-border)] rounded-lg hover:bg-[var(--accent-light)]/20 transition-colors whitespace-nowrap"
-                  >
-                    전체 복사
-                  </button>
+                  <div className="flex gap-2 flex-shrink-0">
+                    <button
+                      onClick={() => copyName(name)}
+                      className="px-4 py-2 text-sm border border-[var(--card-border)] rounded-lg hover:bg-[var(--accent-light)]/20 transition-colors whitespace-nowrap"
+                    >
+                      {getUIText("copyNameButton", currentLang)}
+                    </button>
+                    <button
+                      onClick={() => copyFull(name)}
+                      className="px-4 py-2 text-sm border border-[var(--card-border)] rounded-lg hover:bg-[var(--accent-light)]/20 transition-colors whitespace-nowrap"
+                    >
+                      {getUIText("copyFullButton", currentLang)}
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

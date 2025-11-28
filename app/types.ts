@@ -5,10 +5,13 @@ export type Culture = "anglo" | "france" | "germanic" | "slavic" | "latin" | "gr
 export type Era = "medieval" | "romantic" | "modern19";
 
 // 계급 타입
-export type Class = "noble" | "commoner";
+export type Class = "royal" | "noble" | "commoner";
 
 // 성별 타입
 export type Gender = "female" | "male";
+
+// UI/프롬프트 언어 코드
+export type LangCode = "ko" | "en";
 
 // 이름 생성 요청
 export interface GenerateNamesRequest {
@@ -17,6 +20,7 @@ export interface GenerateNamesRequest {
   class: Class;
   era: Era;
   includeNickname: boolean;
+  lang?: LangCode;
 }
 
 // 이름 생성 응답
@@ -38,6 +42,7 @@ export interface GenerateFamiliesRequest {
   culture: Culture;
   class: Class;
   era: Era;
+  lang?: LangCode;
 }
 
 // 가문명 생성 응답

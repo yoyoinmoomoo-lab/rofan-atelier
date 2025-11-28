@@ -1,13 +1,16 @@
  "use client";
 
 import { trackGtagEvent } from "../../lib/gtag";
+import type { LangCode } from "../types";
+import { getUIText } from "../i18n/uiText";
 
 interface TabsProps {
   activeTab: "names" | "families";
   onTabChange: (tab: "names" | "families") => void;
+  lang: LangCode;
 }
 
-export default function Tabs({ activeTab, onTabChange }: TabsProps) {
+export default function Tabs({ activeTab, onTabChange, lang }: TabsProps) {
   const handleNamesTabClick = () => {
     trackGtagEvent("click_tab_name", "tab", "tab_name_generator");
     onTabChange("names");
@@ -27,7 +30,7 @@ export default function Tabs({ activeTab, onTabChange }: TabsProps) {
             : "text-[var(--text-muted)] hover:text-foreground"
         }`}
       >
-        이름 생성
+        {getUIText("namesTabLabel", lang)}
         {activeTab === "names" && (
           <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--accent)]"></span>
         )}
@@ -40,7 +43,7 @@ export default function Tabs({ activeTab, onTabChange }: TabsProps) {
             : "text-[var(--text-muted)] hover:text-foreground"
         }`}
       >
-        가문명 생성
+        {getUIText("familiesTabLabel", lang)}
         {activeTab === "families" && (
           <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--accent)]"></span>
         )}

@@ -1,7 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
-import { GenerateNamesRequest, NameResult } from "@/app/types";
+import {
+  Class,
+  Era,
+  GenerateNamesRequest,
+  Gender,
+  LangCode,
+  NameResult,
+} from "@/app/types";
+import { GENERATION_PROFILES } from "@/config/generationProfile";
 import { jsonrepair } from "jsonrepair";
+import { buildNamePrompt } from "./buildNamePrompt";
+import { isSupportedLang, sanitizeKoreanHangul } from "../utils/langUtils";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -17,22 +27,27 @@ const CULTURE_MAP: Record<string, string> = {
   greek: "Greek (Hellenic names)",
 };
 
-// 라벨은 UI 표시용
-const GENDER_LABELS: Record<string, string> = {
-  female: "여성",
-  male: "남성",
+const GENDER_LABELS_EN: Record<Gender, string> = {
+  female: "female",
+  male: "male",
 };
 
-const CLASS_LABELS: Record<string, string> = {
+const CLASS_LABELS_EN: Record<Class, string> = {
+  royal: "royal",
+  noble: "noble",
+  commoner: "commoner",
+};
+
+const CLASS_LABELS_KO: Record<Class, string> = {
   royal: "왕족",
   noble: "귀족",
   commoner: "서민",
 };
 
-const ERA_LABELS: Record<string, string> = {
-  medieval: "중세풍",
-  romantic: "낭만풍",
-  modern19: "근대 19세기풍",
+const ERA_LABELS_EN: Record<Era, string> = {
+  medieval: "medieval style",
+  romantic: "romantic-era style",
+  modern19: "19th-century style",
 };
 
 export async function POST(request: NextRequest) {
@@ -47,85 +62,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const cultureEng = CULTURE_MAP[body.culture]; // GPT 입력용
-    const genderLabel = GENDER_LABELS[body.gender];
-    const classLabel = CLASS_LABELS[body.class];
-    const eraLabel = ERA_LABELS[body.era];
+    const lang: LangCode = isSupportedLang(body.lang) ? body.lang : "ko";
+    const profile = GENERATION_PROFILES[lang];
 
-    // 매핑 검증
-    if (!cultureEng || !genderLabel || !classLabel || !eraLabel) {
+    const cultureEng = CULTURE_MAP[body.culture];
+    const genderLabelEn = GENDER_LABELS_EN[body.gender];
+    const classLabelEn = CLASS_LABELS_EN[body.class];
+    const classLabelKo = CLASS_LABELS_KO[body.class];
+    const eraLabelEn = ERA_LABELS_EN[body.era];
+
+    if (!cultureEng || !genderLabelEn || !classLabelEn || !eraLabelEn) {
       return NextResponse.json(
         { error: "잘못된 입력값입니다." },
         { status: 400 }
       );
     }
 
-    const includeNickname = body.includeNickname ? "예" : "아니오";
+    const includeNickname = Boolean(body.includeNickname);
 
-    const prompt = `당신은 '한국 로맨스 판타지(로판) 소설 작가들을 위한 서양식 이름 생성 전문 AI'입니다.
-
-[입력 조건]
-- 문화권(영문 설명): ${cultureEng}
-- 성별: ${genderLabel}
-- 계급(톤): ${classLabel}
-- 시대감: ${eraLabel}
-- 애칭 포함 여부: ${includeNickname}
-
-[세계관·톤 일관성 규칙]
-1. 이름은 반드시 '지정된 문화권과 시대감 안에서' 자연스럽게 존재할 법한 형태여야 합니다.
-2. 같은 나라·가문·시대에 속한 사람들처럼, 발음·느낌·어원이 일관된 톤을 유지합니다.
-3. 문화권이 뒤섞인 부조화(예: 슬라브+영미+그리스 혼합)는 절대 금지합니다.
-4. 우스꽝스럽거나 패러디, 과도한 판타지식 이름 금지.
-   - 허용 예: 실제 서양식 이름의 느낌을 유지한 로판식 변형 (Aveline → Avelyne, Mirelle → Mirélle)
-   - 금지 예: Thraxxia, Zelorin, Uvarith 등
-
-[이름 형식 규칙 – 서양식 First name만 생성]
-1. 성·가문명·작위·호칭(공주·왕자·경 등) 절대 금지.
-2. korean 표기는 '순수 한글 음역'만 사용합니다.
-   - 한국어 단어처럼 보이는 비자연스러운 표기(나는, 가나 등)는 금지.
-3. roman 표기는 알파벳만 사용하며 한글 금지.
-4. desc 내에서 이름을 다시 반복하지 않습니다.
-
-[애칭 규칙 – Roman + Korean 두 가지 모두 제공]
-1. nicknameRoman: 반드시 알파벳만 사용한 서양식 애칭입니다. (예: Lizzy, Addie, Cece)
-2. nicknameKorean: nicknameRoman의 자연스러운 한글 음역입니다. (예: 리지, 애디, 씨씨)
-3. 둘 다 단일 단어여야 하며 문장형 금지.
-
-[이름 다양성 규칙]
-1. 이름 끝 음절(-a, -e, -ine, -elle, -eth, -is, -lin, -ra 등)을 다양하게 섞습니다.
-   - 10개 중 -a로 끝나는 이름은 최대 3개까지만 허용합니다.
-2. 실제 존재하는 이름 + 로판식 창작형 변형을 함께 사용합니다.
-3. 음절은 2~4음절로 구성하며 다양한 패턴을 섞습니다.
-4. 귀족/왕족은 우아하고 길게, 서민은 간단하고 짧게.
-
-[desc 규칙]
-- desc는 반드시 20자 내외의 짧은 '키워드 설명'으로 작성합니다.
-- 예: "세련된 느낌", "침착한 성격", "예술 감각", "지적이고 조용함"
-
-[문화권별 음역 참고 예시 (참고만 하고 그대로 복사하지 마세요)]
-- French: 카미유(Camille), 셀린(Céline), 오렐리(Aurélie), 비비엔느(Vivienne)
-- Germanic/Nordic: 그레타(Greta), 아니카(Annika), 프리다(Frida), 리네아(Linnea)
-- Latin: 카밀라(Camila), 마리나(Marina), 비비아나(Viviana)
-- Slavic: 엘레나(Elena), 밀레나(Milena), 라리사(Larisa)
-- Greek: 칼리스타(Calista), 탈리아(Thalia), 세레네(Selene)
-
-[출력 구조]
-- 정확히 10개의 이름을 생성합니다.
-
-{
-  "names": [
-    {
-      "korean": "",
-      "roman": "",
-      "classTone": "${classLabel}풍",
-      "nicknameRoman": "",
-      "nicknameKorean": "",
-      "desc": ""
-    }
-  ]
-}
-
-JSON만 출력합니다. 다른 텍스트는 절대 포함하지 마세요.`;
+    const prompt = buildNamePrompt({
+      lang,
+      cultureEng,
+      genderLabelEn,
+      classLabelEn,
+      eraLabelEn,
+      includeNickname,
+      profile,
+    });
 
     let completion;
     try {
@@ -187,24 +150,31 @@ JSON만 출력합니다. 다른 텍스트는 절대 포함하지 마세요.`;
       throw new Error("응답 구조가 올바르지 않습니다.");
     }
 
-    // 각 이름의 필수 필드 검증 및 기본값 설정
     parsed.names = parsed.names.map((n: Partial<NameResult>) => {
+      const koreanRaw = typeof n.korean === "string" ? n.korean : "";
+      const sanitizedKorean = sanitizeKoreanHangul(koreanRaw);
+      if (!sanitizedKorean && koreanRaw.trim()) {
+        console.warn("korean 필드가 모두 제거됨:", { original: koreanRaw });
+      }
+
       const name: NameResult = {
-        korean: typeof n.korean === "string" ? n.korean : "",
+        korean: sanitizedKorean,
         roman: typeof n.roman === "string" ? n.roman : "",
-        classTone: typeof n.classTone === "string" ? n.classTone : `${classLabel}풍`,
+        classTone:
+          typeof n.classTone === "string" && n.classTone.trim()
+            ? n.classTone
+            : profile.classToneFallback(classLabelEn, classLabelKo),
         nicknameRoman:
-          body.includeNickname && typeof n.nicknameRoman === "string" ? n.nicknameRoman : "",
+          includeNickname && typeof n.nicknameRoman === "string" ? n.nicknameRoman : "",
         nicknameKorean:
-          body.includeNickname && typeof n.nicknameKorean === "string" ? n.nicknameKorean : "",
+          includeNickname && typeof n.nicknameKorean === "string" ? n.nicknameKorean : "",
         desc: typeof n.desc === "string" ? n.desc : "",
       };
-      
-      // 필수 필드 검증
+
       if (!name.korean || !name.roman) {
         console.warn("필수 필드 누락된 이름:", name);
       }
-      
+
       return name;
     });
 
