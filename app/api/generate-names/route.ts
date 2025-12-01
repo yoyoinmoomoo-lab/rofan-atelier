@@ -12,6 +12,7 @@ import { GENERATION_PROFILES } from "@/config/generationProfile";
 import { jsonrepair } from "jsonrepair";
 import { buildNamePrompt } from "./buildNamePrompt";
 import { isSupportedLang, sanitizeKoreanHangul } from "../utils/langUtils";
+import { NAME_MODEL } from "@/app/lib/models";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -30,6 +31,7 @@ const CULTURE_MAP: Record<string, string> = {
 const GENDER_LABELS_EN: Record<Gender, string> = {
   female: "female",
   male: "male",
+  neutral: "neutral",
 };
 
 const CLASS_LABELS_EN: Record<Class, string> = {
@@ -93,7 +95,7 @@ export async function POST(request: NextRequest) {
     let completion;
     try {
       completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: NAME_MODEL,
         messages: [
           {
             role: "system",

@@ -17,6 +17,26 @@ const UI_TEXT = {
     ko: "가문명 생성",
     en: "Family Names",
   },
+  characterTabLabel: {
+    ko: "캐릭터 이름 생성",
+    en: "Character names",
+  },
+  nameGeneratorTitle: {
+    ko: "이름 생성하기",
+    en: "Generate Names",
+  },
+  nameGeneratorDescription: {
+    ko: "문화권과 성별, 계급을 선택하면 로판에 어울리는 이름과 애칭을 만들어줍니다.",
+    en: "Select culture, gender, and class to generate names and nicknames that fit romance fantasy novels.",
+  },
+  familyGeneratorTitle: {
+    ko: "가문명 생성하기",
+    en: "Generate Family Names",
+  },
+  familyGeneratorDescription: {
+    ko: "세계관에 맞는 귀족 가문 이름과 간단한 설명을 만들어줍니다.",
+    en: "Generate noble family names and brief descriptions that match your world setting.",
+  },
   cultureLabel: {
     ko: "문화권",
     en: "Culture",

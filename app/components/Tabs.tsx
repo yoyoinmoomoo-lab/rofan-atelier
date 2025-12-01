@@ -4,47 +4,68 @@ import { trackGtagEvent } from "../../lib/gtag";
 import type { LangCode } from "../types";
 import { getUIText } from "../i18n/uiText";
 
+type TabType = "name" | "family" | "character";
+
 interface TabsProps {
-  activeTab: "names" | "families";
-  onTabChange: (tab: "names" | "families") => void;
+  activeTab: TabType;
+  onTabChange: (tab: TabType) => void;
   lang: LangCode;
 }
 
 export default function Tabs({ activeTab, onTabChange, lang }: TabsProps) {
-  const handleNamesTabClick = () => {
+  const handleNameTabClick = () => {
     trackGtagEvent("click_tab_name", "tab", "tab_name_generator");
-    onTabChange("names");
+    onTabChange("name");
   };
 
-  const handleFamiliesTabClick = () => {
+  const handleFamilyTabClick = () => {
     trackGtagEvent("click_tab_family", "tab", "tab_family_generator");
-    onTabChange("families");
+    onTabChange("family");
   };
+
+  const handleCharacterTabClick = () => {
+    trackGtagEvent("click_tab_character", "tab", "tab_character_generator");
+    onTabChange("character");
+  };
+
   return (
     <div className="flex gap-2 mb-8 border-b border-[var(--card-border)]/30">
       <button
-        onClick={handleNamesTabClick}
+        onClick={handleNameTabClick}
         className={`px-6 py-3 font-medium text-sm transition-colors relative ${
-          activeTab === "names"
+          activeTab === "name"
             ? "text-foreground"
             : "text-[var(--text-muted)] hover:text-foreground"
         }`}
       >
         {getUIText("namesTabLabel", lang)}
-        {activeTab === "names" && (
+        {activeTab === "name" && (
           <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--accent)]"></span>
         )}
       </button>
       <button
-        onClick={handleFamiliesTabClick}
+        onClick={handleFamilyTabClick}
         className={`px-6 py-3 font-medium text-sm transition-colors relative ${
-          activeTab === "families"
+          activeTab === "family"
             ? "text-foreground"
             : "text-[var(--text-muted)] hover:text-foreground"
         }`}
       >
         {getUIText("familiesTabLabel", lang)}
-        {activeTab === "families" && (
+        {activeTab === "family" && (
+          <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--accent)]"></span>
+        )}
+      </button>
+      <button
+        onClick={handleCharacterTabClick}
+        className={`px-6 py-3 font-medium text-sm transition-colors relative ${
+          activeTab === "character"
+            ? "text-foreground"
+            : "text-[var(--text-muted)] hover:text-foreground"
+        }`}
+      >
+        {getUIText("characterTabLabel", lang)}
+        {activeTab === "character" && (
           <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--accent)]"></span>
         )}
       </button>

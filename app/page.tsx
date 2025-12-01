@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Tabs from "./components/Tabs";
 import NameGenerator from "./components/NameGenerator";
 import FamilyGenerator from "./components/FamilyGenerator";
+import CharacterNameGenerator from "./components/CharacterNameGenerator";
 import Toast from "./components/Toast";
 import FeedbackBox from "./components/FeedbackBox";
 import LanguageSelector from "./components/LanguageSelector";
@@ -13,10 +14,11 @@ import type { LangCode } from "./types";
 import { getInitialLang } from "./utils/langUtils";
 import { getUIText } from "./i18n/uiText";
 
+type TabType = "name" | "family" | "character";
+
 function HomeContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"names" | "families">("names");
   const [toastMessage, setToastMessage] = useState("");
   const [showToast, setShowToast] = useState(false);
   
@@ -32,6 +34,15 @@ function HomeContent() {
   }, [urlLang, storageLang]);
   
   const [lang, setLangState] = useState<LangCode>(initialLang);
+
+  // 탭 상태: URL 쿼리 기반
+  const urlTab = searchParams.get("tab");
+  const activeTab: TabType = useMemo(() => {
+    if (urlTab === "family" || urlTab === "character") {
+      return urlTab;
+    }
+    return "name"; // 기본값
+  }, [urlTab]);
 
   // URL 변경 시 lang 동기화
   useEffect(() => {
@@ -67,6 +78,22 @@ function HomeContent() {
     }
   };
 
+  // 탭 변경 핸들러: URL 쿼리만 업데이트
+  const handleTabChange = (tab: TabType) => {
+    const currentParams = new URLSearchParams(window.location.search);
+    if (tab === "name") {
+      // 기본 탭이면 tab 파라미터 제거
+      currentParams.delete("tab");
+    } else {
+      currentParams.set("tab", tab);
+    }
+    // lang 파라미터는 유지
+    if (!currentParams.has("lang") && lang) {
+      currentParams.set("lang", lang);
+    }
+    router.replace(`?${currentParams.toString()}`, { scroll: false });
+  };
+
   const handleCopy = (message: string) => {
     setToastMessage(message);
     setShowToast(true);
@@ -99,7 +126,7 @@ function HomeContent() {
               <LanguageSelector 
                 currentLang={lang} 
                 onChange={setLang} 
-                currentPage={activeTab === "names" ? "given" : "family"}
+                currentPage={activeTab === "name" ? "given" : activeTab === "family" ? "family" : "given"}
               />
               <div className="text-[var(--accent)] text-2xl hidden md:block">✧</div>
             </div>
@@ -109,12 +136,14 @@ function HomeContent() {
 
       {/* 메인 컨텐츠 */}
       <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-        <Tabs activeTab={activeTab} onTabChange={setActiveTab} lang={lang} />
+        <Tabs activeTab={activeTab} onTabChange={handleTabChange} lang={lang} />
 
-        {activeTab === "names" ? (
+        {activeTab === "name" ? (
           <NameGenerator lang={lang} onCopy={handleCopy} />
-        ) : (
+        ) : activeTab === "family" ? (
           <FamilyGenerator lang={lang} onCopy={handleCopy} />
+        ) : (
+          <CharacterNameGenerator lang={lang} onCopy={handleCopy} />
         )}
 
         {/* 피드백 박스 */}

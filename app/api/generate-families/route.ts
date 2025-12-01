@@ -11,6 +11,7 @@ import { GENERATION_PROFILES } from "@/config/generationProfile";
 import { jsonrepair } from "jsonrepair";
 import { buildFamilyPrompt } from "./buildFamilyPrompt";
 import { isSupportedLang, sanitizeKoreanHangul } from "../utils/langUtils";
+import { FAMILY_MODEL } from "@/app/lib/models";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -81,7 +82,7 @@ export async function POST(request: NextRequest) {
     let completion;
     try {
       completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: FAMILY_MODEL,
         messages: [
           {
             role: "system",

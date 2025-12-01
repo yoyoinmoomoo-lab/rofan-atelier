@@ -107,6 +107,16 @@ export default function NameGenerator({ onCopy, lang }: NameGeneratorProps) {
 
   return (
     <div className="space-y-8">
+      {/* 타이틀 + 설명 */}
+      <div className="space-y-2">
+        <h1 className="font-serif text-2xl sm:text-3xl font-semibold text-foreground">
+          {getUIText("nameGeneratorTitle", currentLang)}
+        </h1>
+        <p className="text-sm text-[var(--text-muted)]">
+          {getUIText("nameGeneratorDescription", currentLang)}
+        </p>
+      </div>
+
       {/* 입력 폼 */}
       <form onSubmit={handleSubmit} className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg p-6 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
