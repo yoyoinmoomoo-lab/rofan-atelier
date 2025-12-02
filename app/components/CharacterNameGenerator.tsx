@@ -42,6 +42,20 @@ export default function CharacterNameGenerator({
     e.preventDefault();
     setErrorKey(null);
 
+    // GA 이벤트 전송
+    if (typeof window !== "undefined" && typeof window.gtag === "function") {
+      window.gtag("event", "character_name_generate_click", {
+        event_category: "generate_button",
+        event_label: "generate_5_character_names",
+        lang,
+        tone_level: inputState.tone_strength,
+        era_level: inputState.eraLevel,
+        gender: inputState.gender,
+        personality_count: 0,
+        trait_count: 0,
+        has_custom_note: inputState.characterPrompt.trim().length > 0 ? 1 : 0,
+      });
+    }
 
     setLoading(true);
 
