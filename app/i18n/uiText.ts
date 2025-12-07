@@ -183,6 +183,92 @@ const UI_TEXT = {
     ko: "결과가 없습니다.",
     en: "No results found.",
   },
+  // Visualboard 관련
+  visualboardTitle: {
+    ko: "시각화 보드",
+    en: "Visual Board",
+  },
+  visualboardSceneLabel: {
+    ko: "장면",
+    en: "Scene",
+  },
+  visualboardCharactersLabel: {
+    ko: "등장인물",
+    en: "Characters",
+  },
+  visualboardRelationsLabel: {
+    ko: "관계",
+    en: "Relations",
+  },
+  visualboardTensionLabel: {
+    ko: "긴장도",
+    en: "Tension",
+  },
+  visualboardAffectionLabel: {
+    ko: "호감도",
+    en: "Affection",
+  },
+  visualboardDialogueImpactLow: {
+    ko: "낮음",
+    en: "Low",
+  },
+  visualboardDialogueImpactMedium: {
+    ko: "보통",
+    en: "Medium",
+  },
+  visualboardDialogueImpactHigh: {
+    ko: "높음",
+    en: "High",
+  },
+  visualboardDialogueImpactLabel: {
+    ko: "대화 강도",
+    en: "Dialogue Impact",
+  },
+  visualboardNoCharacters: {
+    ko: "등장인물이 없습니다.",
+    en: "No characters found.",
+  },
+  visualboardNoRelations: {
+    ko: "관계 정보가 없습니다.",
+    en: "No relations found.",
+  },
+  // 테스트 보드 관련
+  testBoardTitle: {
+    ko: "Visualboard 테스트",
+    en: "Visualboard Test",
+  },
+  testBoardDescription: {
+    ko: "소설 텍스트를 입력하면 등장인물, 장면, 관계를 시각화합니다.",
+    en: "Enter novel text to visualize characters, scenes, and relationships.",
+  },
+  testBoardInputLabel: {
+    ko: "소설 텍스트 입력",
+    en: "Enter Novel Text",
+  },
+  testBoardInputPlaceholder: {
+    ko: "황녀 아리아드네는 차가운 눈빛으로 공작을 내려다보았다. 화려한 연회장이었지만 그녀의 주변엔 냉기가 흘렀다. 공작은 당황하여 뒷걸음질 쳤다.",
+    en: "Princess Ariadne looked down at the duke with cold eyes. Although it was a splendid banquet hall, a chill flowed around her. The duke panicked and stepped back.",
+  },
+  testBoardAnalyzeButton: {
+    ko: "분석하기",
+    en: "Analyze",
+  },
+  testBoardError: {
+    ko: "분석 중 오류가 발생했습니다.",
+    en: "An error occurred during analysis.",
+  },
+  testBoardBetaBadge: {
+    ko: "Beta",
+    en: "Beta",
+  },
+  testBoardManualInputToggle: {
+    ko: "직접 텍스트로 테스트하기 (개발자용)",
+    en: "Test with manual text input (Developer)",
+  },
+  visualboardWindowInfo: {
+    ko: "이 보드는 현재 브라우저 창의 AI 대화를 시각화합니다. 서로 다른 대화를 각각 다른 보드로 보고 싶다면 새 창을 열어 이 확장 프로그램을 다시 열어주세요.",
+    en: "This board visualizes AI conversations in the current browser window. To view different conversations in separate boards, open a new window and open this extension again.",
+  },
 } as const;
 
 export type UITextKey = keyof typeof UI_TEXT;

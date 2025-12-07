@@ -347,3 +347,4 @@ export default function I18nDemoPage() {
 **프로젝트:** rofan-atelier (로판월드)
 **분석 범위:** `app/` 디렉토리 전체
 
+

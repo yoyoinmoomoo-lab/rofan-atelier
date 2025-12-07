@@ -87,3 +87,52 @@ export interface GenerateCharacterNamesResponse {
   names: CharacterNameResult[];
 }
 
+// Visualboard 관련 타입
+export type SceneType = "castle" | "room" | "garden" | "hall" | "carriage" | "forest";
+
+export type CharacterSlot = "left" | "center" | "right";
+
+export type CharacterMood = "neutral" | "happy" | "angry" | "sad" | "shy" | "surprised";
+
+// 캐릭터 무드 라벨 타입
+export type MoodLabel = "joy" | "tension" | "anger" | "sadness" | "fear" | "surprise" | "neutral" | "love" | "contempt";
+
+// 캐릭터 무드 객체
+export interface CharacterMoodState {
+  label: MoodLabel;
+  description: string; // 감정 상태에 대한 간단한 설명 (1-2문장)
+}
+
+export interface StoryState {
+  scene: {
+    summary: string; // 장면 한 줄 요약
+    type: SceneType;
+    visualKey?: string; // v0.2: 장면 비주얼 키 (예: 'ballroom', 'bedroom', 'street')
+    location_name?: string; // v0.2: 구체적인 장소 이름 (예: '왕궁 연회장', '서재')
+    backdrop_style?: string; // v0.2: 배경 스타일 설명 (예: '화려한 샹들리에가 달린', '어두운')
+  };
+  characters: Array<{
+    name: string;
+    slot: CharacterSlot;
+    mood: CharacterMood; // 하위 호환성을 위해 유지 (v0.2에서 추가된 mood 객체와 병행)
+    moodState?: CharacterMoodState; // v0.2: 상세한 무드 정보
+    visualKey?: string; // v0.2: 캐릭터 비주얼 키 (예: 'liliana', 'rebon')
+  }>;
+  relations: Array<{
+    a: string; // 캐릭터 A 이름
+    b: string; // 캐릭터 B 이름
+    tension: number;   // 0~100 (긴장도)
+    affection: number; // 0~100 (호감도)
+  }>;
+  dialogue_impact: "low" | "medium" | "high"; // 화면 연출 강도
+}
+
+export interface AnalyzeChatRequest {
+  chatText: string;
+  previousState?: StoryState; // 이전 장면 상태 (선택적)
+}
+
+export interface AnalyzeChatResponse {
+  state: StoryState;
+}
+
