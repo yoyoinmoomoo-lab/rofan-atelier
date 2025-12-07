@@ -1,95 +1,85 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import type { StoryState, LangCode } from "@/app/types";
+import { useState, useEffect, use } from "react";
+import type { StoryState, LangCode, AnalyzeChatRequest } from "@/app/types";
 import { getUIText } from "@/app/i18n/uiText";
 import VisualBoard from "@/app/components/visualboard/VisualBoard";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
 
-export default function TestBoardPage() {
-  const lang: LangCode = "ko"; // 기본값 "ko"
+type TestBoardSearchParams = {
+  embed?: string;
+};
+
+export default function TestBoardPage({
+  searchParams,
+}: {
+  searchParams: Promise<TestBoardSearchParams>;
+}) {
+  const lang: LangCode = "ko";
   const [chatText, setChatText] = useState("");
   const [state, setState] = useState<StoryState | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [receivedMsg, setReceivedMsg] = useState<string>("");
-  const [storyData, setStoryData] = useState<{ speaker: string; text: string; mood?: string } | null>(null);
 
-  // Extension으로부터 메시지 수신
+  const resolved = use(searchParams);
+  const isEmbed = resolved.embed === "1";
+
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      // 보안: origin 확인 (rofan.world 또는 chrome-extension에서만 수신)
-      if (
-        event.origin !== 'https://rofan.world' &&
-        !event.origin.startsWith('chrome-extension://')
-      ) {
-        console.warn('[Test Board] Message from unexpected origin:', event.origin);
+      const allowedOrigins = [
+        "http://localhost:3001",
+        "https://rofan.world",
+        "chrome-extension://",
+      ];
+
+      const isAllowed = allowedOrigins.some((origin) =>
+        event.origin.startsWith(origin)
+      );
+
+      if (!isAllowed) {
+        console.warn("[Test Board] Message from unexpected origin:", event.origin);
         return;
       }
 
-      if (event.data.type === 'FROM_EXTENSION') {
-        const payload = event.data.payload;
-        setReceivedMsg(payload);
-        console.log('[Test Board] Received message from extension:', payload);
-      } else if (event.data.type === 'STORY_DATA') {
-        const payload = event.data.payload;
-        setStoryData(payload);
-        console.log('[Test Board] Received STORY_DATA from extension:', payload);
-      } else if (event.data.type === 'STORY_STATE_UPDATE') {
-        const storyState = event.data.state;
-        console.log('[Test Board] Received STORY_STATE_UPDATE from extension:', storyState);
-        
-        if (storyState) {
-          // StoryState 타입 검증
-          if (
-            storyState.scene &&
-            storyState.characters &&
-            Array.isArray(storyState.characters) &&
-            storyState.dialogue_impact
-          ) {
-            setState(storyState as StoryState);
-            setError(null);
-            console.log('[Test Board] StoryState updated successfully');
-          } else {
-            console.error('[Test Board] Invalid StoryState structure:', storyState);
-            setError('Invalid StoryState received from extension');
-          }
-        } else {
-          console.error('[Test Board] STORY_STATE_UPDATE missing state:', event.data);
-          setError('StoryState data is missing');
-        }
-      } else if (event.data.type === 'RESET_STORY_STATE') {
-        console.log('[Test Board] Received RESET_STORY_STATE from extension');
+      const data = event.data;
+      if (!data || typeof data !== "object") return;
+
+      if (data.type === "STORY_STATE_UPDATE" && data.state) {
+        console.log("[test-board] STORY_STATE_UPDATE received:", data.state);
+        setState(data.state);
+        setError(null);
+      } else if (data.type === "RESET_STORY_STATE") {
+        console.log("[test-board] RESET_STORY_STATE received");
         setState(null);
         setError(null);
-        console.log('[Test Board] StoryState reset successfully');
       }
     };
 
-    window.addEventListener('message', handleMessage);
-
+    window.addEventListener("message", handleMessage);
     return () => {
-      window.removeEventListener('message', handleMessage);
+      window.removeEventListener("message", handleMessage);
     };
   }, []);
 
   const handleAnalyze = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!chatText.trim()) {
       setError("텍스트를 입력해주세요.");
       return;
     }
-
     setError(null);
     setLoading(true);
-    setState(null);
 
     try {
+      const requestBody: AnalyzeChatRequest = {
+        chatText: chatText.trim(),
+        previousState: state || undefined,
+      };
+
       const response = await fetch("/api/analyze-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chatText: chatText.trim() }),
+        body: JSON.stringify(requestBody),
       });
 
       const data = await response.json();
@@ -115,118 +105,88 @@ export default function TestBoardPage() {
 
   return (
     <div className="min-h-screen bg-[var(--background)]">
-      {/* 헤더 */}
-      <header className="border-b border-[var(--card-border)]/30 bg-[var(--card-bg)]">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="font-serif text-2xl sm:text-3xl font-semibold text-foreground">
-            {getUIText("testBoardTitle", lang)}
-          </h1>
-          <p className="text-sm text-[var(--text-muted)] mt-1">
-            {getUIText("testBoardDescription", lang)}
-          </p>
-        </div>
-      </header>
-
-      {/* 메인 컨텐츠 */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {!isEmbed && (
+        <header className="border-b border-[var(--card-border)]/30 bg-[var(--card-bg)]">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <h1 className="font-serif text-2xl sm:text-3xl font-semibold text-foreground">
+              {getUIText("testBoardTitle", lang)}
+            </h1>
+            <p className="text-sm text-[var(--text-muted)] mt-1">
+              {getUIText("testBoardDescription", lang)}
+            </p>
+          </div>
+        </header>
+      )}
+      <main
+        className={`max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 ${isEmbed ? "mt-2" : "py-8"}`}
+      >
         <div className="space-y-6">
-          {/* Extension으로부터 받은 메시지 표시 */}
-          {receivedMsg && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm font-medium text-blue-900 mb-1">
-                Extension으로부터 받은 메시지:
-              </p>
-              <p className="text-sm text-blue-700 whitespace-pre-wrap">
-                {receivedMsg}
-              </p>
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm">
+              {error}
             </div>
           )}
 
-          {/* STORY_DATA 대화창 스타일 표시 */}
-          {storyData && (
-            <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow">
-              <div className="flex items-start gap-3">
-                <div className="flex-1">
-                  <p className="font-bold text-gray-900 text-base mb-1">
-                    {storyData.speaker}
-                  </p>
-                  <p className="text-gray-700 text-sm leading-relaxed">
-                    {storyData.text}
-                  </p>
-                  {storyData.mood && (
-                    <span className="inline-block mt-2 px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded">
-                      {storyData.mood}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* 입력 영역 */}
-          <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg p-6">
-            <form onSubmit={handleAnalyze} className="space-y-4">
-              <div>
-                <label
-                  htmlFor="chatText"
-                  className="block text-sm font-medium text-foreground mb-2"
-                >
-                  {getUIText("testBoardInputLabel", lang)}
-                </label>
-                <textarea
-                  id="chatText"
-                  value={chatText}
-                  onChange={(e) => setChatText(e.target.value)}
-                  placeholder={getUIText("testBoardInputPlaceholder", lang)}
-                  className="w-full h-48 px-4 py-3 border border-[var(--card-border)] rounded-lg 
+          {!isEmbed && (
+            <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg p-6">
+              <form onSubmit={handleAnalyze} className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="chatText"
+                    className="block text-sm font-medium text-foreground mb-2"
+                  >
+                    {getUIText("testBoardInputLabel", lang)}
+                  </label>
+                  <textarea
+                    id="chatText"
+                    value={chatText}
+                    onChange={(e) => setChatText(e.target.value)}
+                    placeholder={getUIText("testBoardInputPlaceholder", lang)}
+                    className="w-full h-48 px-4 py-3 border border-[var(--card-border)] rounded-lg 
                            bg-white text-foreground placeholder-text-muted
                            focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent
                            resize-y"
-                  disabled={loading}
-                />
-              </div>
+                    disabled={loading}
+                  />
+                </div>
 
-              <button
-                type="submit"
-                disabled={loading || !chatText.trim()}
-                className="w-full sm:w-auto px-8 py-3 bg-[var(--accent)] text-white rounded-lg 
+                <button
+                  type="submit"
+                  disabled={loading || !chatText.trim()}
+                  className="w-full sm:w-auto px-8 py-3 bg-[var(--accent)] text-white rounded-lg 
                          font-medium hover:bg-[var(--accent)]/90 transition-colors 
                          disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? getUIText("generatingText", lang) : getUIText("testBoardAnalyzeButton", lang)}
-              </button>
-            </form>
+                >
+                  {loading
+                    ? getUIText("generatingText", lang)
+                    : getUIText("testBoardAnalyzeButton", lang)}
+                </button>
+              </form>
+            </div>
+          )}
 
-            {/* 에러 메시지 */}
-            {error && (
-              <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm">
-                {error}
-              </div>
-            )}
-          </div>
-
-          {/* 로딩 스피너 */}
           {loading && <LoadingSpinner />}
-
-          {/* 결과 시각화 */}
           {!loading && state && (
             <div className="animate-fade-in">
               <VisualBoard state={state} lang={lang} />
             </div>
           )}
+          {!loading && !state && (
+            <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg p-8 text-center text-text-muted">
+              <p>{getUIText("visualboardNoState", lang)}</p>
+            </div>
+          )}
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="border-t border-[var(--card-border)]/30 bg-[var(--card-bg)] mt-12">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <p className="text-xs text-[var(--text-muted)] text-center">
-            {getUIText("footerPoweredBy", lang)}
-          </p>
-        </div>
-      </footer>
+      {!isEmbed && (
+        <footer className="border-t border-[var(--card-border)]/30 bg-[var(--card-bg)] mt-12">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <p className="text-xs text-[var(--text-muted)] text-center">
+              {getUIText("footerPoweredBy", lang)}
+            </p>
+          </div>
+        </footer>
+      )}
     </div>
   );
 }
-
-

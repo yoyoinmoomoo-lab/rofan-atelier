@@ -228,6 +228,10 @@ const UI_TEXT = {
     ko: "등장인물이 없습니다.",
     en: "No characters found.",
   },
+  visualboardNoState: {
+    ko: "장면 정보가 없습니다. 텍스트를 입력하고 분석해주세요.",
+    en: "No scene information. Please enter text and analyze.",
+  },
   visualboardNoRelations: {
     ko: "관계 정보가 없습니다.",
     en: "No relations found.",
