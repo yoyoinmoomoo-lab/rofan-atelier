@@ -25,35 +25,28 @@ export default function TestBoardPage({
   const isEmbed = resolved.embed === "1";
 
   useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      const allowedOrigins = [
-        "http://localhost:3001",
-        "https://rofan.world",
-        "chrome-extension://",
-      ];
+    function handleMessage(event: MessageEvent) {
+      // 디버그용 로그 (잠깐만 켜두고 이상 없으면 지워도 됨)
+      console.log("[test-board] message received:", event.origin, event.data);
 
-      const isAllowed = allowedOrigins.some((origin) =>
-        event.origin.startsWith(origin)
-      );
+      const isExtension = event.origin.startsWith("chrome-extension://");
+      const isSameOrigin = event.origin === "https://rofan.world";
 
-      if (!isAllowed) {
+      if (!isExtension && !isSameOrigin) {
         console.warn("[Test Board] Message from unexpected origin:", event.origin);
         return;
       }
 
-      const data = event.data;
-      if (!data || typeof data !== "object") return;
+      const { type, state } = event.data || {};
 
-      if (data.type === "STORY_STATE_UPDATE" && data.state) {
-        console.log("[test-board] STORY_STATE_UPDATE received:", data.state);
-        setState(data.state);
-        setError(null);
-      } else if (data.type === "RESET_STORY_STATE") {
-        console.log("[test-board] RESET_STORY_STATE received");
-        setState(null);
-        setError(null);
+      if (type === "STORY_STATE_UPDATE") {
+        setState(state ?? null);
       }
-    };
+
+      if (type === "RESET_STORY_STATE") {
+        setState(null);
+      }
+    }
 
     window.addEventListener("message", handleMessage);
     return () => {
