@@ -18,6 +18,7 @@ export default function TestBoardPage({
   const lang: LangCode = "ko";
   const [chatText, setChatText] = useState("");
   const [state, setState] = useState<StoryState | null>(null);
+  const [scenarioKey, setScenarioKey] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,15 +33,17 @@ export default function TestBoardPage({
       // 🔥 임시로 origin 체크는 전부 통과시킴
       // (type이 다른 메시지는 무시하므로 안전성 크게 문제 없음)
       const data = event.data || {};
-      const { type, state } = data as any;
+      const { type, state, scenarioKey } = data as any;
 
       if (type === "STORY_STATE_UPDATE") {
-        console.log("[test-board] STORY_STATE_UPDATE received:", state);
+        console.log("[test-board] STORY_STATE_UPDATE received:", state, "scenarioKey:", scenarioKey);
         setState(state ?? null);
+        setScenarioKey(scenarioKey ?? null);
       }
 
       if (type === "RESET_STORY_STATE") {
         console.log("[test-board] RESET_STORY_STATE received");
+        setScenarioKey(null);
         setState(null);
       }
     }
@@ -164,7 +167,11 @@ export default function TestBoardPage({
           {loading && <LoadingSpinner />}
           {!loading && state && (
             <div className="animate-fade-in">
-              <VisualBoard state={state} lang={lang} />
+              <VisualBoard
+                state={state}
+                lang={lang}
+                scenarioKey={scenarioKey ?? undefined}
+              />
             </div>
           )}
           {!loading && !state && (

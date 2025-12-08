@@ -248,6 +248,10 @@ const UI_TEXT = {
     ko: "백스테이지 캐스트",
     en: "Backstage Cast",
   },
+  visualboardCastTitle: {
+    ko: "캐스트",
+    en: "Cast",
+  },
   castGenderMale: {
     ko: "남자",
     en: "Male",
@@ -263,6 +267,14 @@ const UI_TEXT = {
   castOnStage: {
     ko: "무대 위",
     en: "On Stage",
+  },
+  castOnStageSectionTitle: {
+    ko: "무대 위",
+    en: "On Stage",
+  },
+  castOffStageSectionTitle: {
+    ko: "무대 뒤",
+    en: "Off Stage",
   },
   visualboardNoRelations: {
     ko: "관계 정보가 없습니다.",
