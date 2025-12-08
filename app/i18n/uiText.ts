@@ -232,6 +232,38 @@ const UI_TEXT = {
     ko: "장면 정보가 없습니다. 텍스트를 입력하고 분석해주세요.",
     en: "No scene information. Please enter text and analyze.",
   },
+  visualboardCurrentSceneTitle: {
+    ko: "현재 장면",
+    en: "Current Scene",
+  },
+  visualboardCharacterStatusTitle: {
+    ko: "캐릭터 상태",
+    en: "Character Status",
+  },
+  visualboardEmptyMessageEmbed: {
+    ko: "장면 정보가 없습니다. 사이드패널에서 \"최근 턴 분석하기\"를 눌러 보드를 업데이트해주세요.",
+    en: "No scene information. Please click \"Analyze Recent Turn\" in the side panel to update the board.",
+  },
+  visualboardBackstageCastTitle: {
+    ko: "백스테이지 캐스트",
+    en: "Backstage Cast",
+  },
+  castGenderMale: {
+    ko: "남자",
+    en: "Male",
+  },
+  castGenderFemale: {
+    ko: "여자",
+    en: "Female",
+  },
+  castGenderUnknown: {
+    ko: "모름",
+    en: "Unknown",
+  },
+  castOnStage: {
+    ko: "무대 위",
+    en: "On Stage",
+  },
   visualboardNoRelations: {
     ko: "관계 정보가 없습니다.",
     en: "No relations found.",

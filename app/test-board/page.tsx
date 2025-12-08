@@ -169,7 +169,11 @@ export default function TestBoardPage({
           )}
           {!loading && !state && (
             <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg p-8 text-center text-text-muted">
-              <p>{getUIText("visualboardNoState", lang)}</p>
+              <p>
+                {isEmbed
+                  ? getUIText("visualboardEmptyMessageEmbed", lang)
+                  : getUIText("visualboardNoState", lang)}
+              </p>
             </div>
           )}
         </div>
