@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { StoryState, LangCode } from "@/app/types";
 import { getUIText } from "@/app/i18n/uiText";
 import PixelStage from "./PixelStage";
@@ -31,6 +31,8 @@ const STATE_KEY_PREFIX = "rofan-visualboard-state::";
 
 export default function VisualBoard({ state, lang, scenarioKey, onStateRestore }: VisualBoardProps) {
   const [castByScenario, setCastByScenario] = useState<CastByScenario>({});
+  const hasLoadedStateRef = useRef<Record<string, boolean>>({});
+  const lastSavedStateRef = useRef<Record<string, string>>({});
 
   const scenarioKeySafe = scenarioKey ?? "__default__";
 
@@ -114,33 +116,50 @@ export default function VisualBoard({ state, lang, scenarioKey, onStateRestore }
     }
   }, [castByScenario, scenarioKey, scenarioKeySafe, state]);
 
-  // 마운트 시 시나리오별 마지막 무대 상태 복원
+  // 마운트 시 시나리오별 마지막 무대 상태 복원 (시나리오별 최초 1회만 실행)
   useEffect(() => {
     if (!scenarioKey) return;
     if (typeof window === "undefined") return;
+    
+    const scenarioKeySafe = scenarioKey ?? "__default__";
+    if (hasLoadedStateRef.current[scenarioKeySafe]) return; // 이미 로드했으면 스킵
 
     const key = `${STATE_KEY_PREFIX}${scenarioKey}`;
     const raw = window.localStorage.getItem(key);
-    if (!raw) return;
+    if (!raw) {
+      hasLoadedStateRef.current[scenarioKeySafe] = true; // 로드 시도했으므로 플래그 설정
+      return;
+    }
 
     try {
       const parsed = JSON.parse(raw) as StoryState;
       if (onStateRestore) {
+        hasLoadedStateRef.current[scenarioKeySafe] = true; // 복원 전에 플래그 설정
         onStateRestore(parsed);
       }
     } catch (e) {
       console.warn("[Rofan Visualboard] Failed to restore story state", e);
+      hasLoadedStateRef.current[scenarioKeySafe] = true; // 에러가 나도 플래그 설정
     }
   }, [scenarioKey, onStateRestore]);
 
-  // state가 바뀔 때 시나리오별 마지막 무대 상태 저장
+  // state가 바뀔 때 시나리오별 마지막 무대 상태 저장 (이전 값과 다를 때만)
   useEffect(() => {
     if (!scenarioKey || !state) return;
     if (typeof window === "undefined") return;
 
     const key = `${STATE_KEY_PREFIX}${scenarioKey}`;
+    const stateString = JSON.stringify(state);
+    const scenarioKeySafe = scenarioKey ?? "__default__";
+    
+    // 이전 저장된 값과 같으면 저장하지 않음
+    if (lastSavedStateRef.current[scenarioKeySafe] === stateString) {
+      return;
+    }
+
     try {
-      window.localStorage.setItem(key, JSON.stringify(state));
+      window.localStorage.setItem(key, stateString);
+      lastSavedStateRef.current[scenarioKeySafe] = stateString;
     } catch (e) {
       console.warn("[Rofan Visualboard] Failed to save story state", e);
     }

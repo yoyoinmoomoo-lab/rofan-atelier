@@ -31,10 +31,13 @@ export default function TestBoardPage({
       // 디버그용: 어떤 origin에서 무엇이 오는지 전부 찍기
       console.log("[test-board] message received:", event.origin, event.data);
 
-      // 🔥 임시로 origin 체크는 전부 통과시킴
-      // (type이 다른 메시지는 무시하므로 안전성 크게 문제 없음)
       const data = event.data || {};
-      const { type, state, scenarioKey } = data as any;
+      const { type, state, scenarioKey, sender } = data as any;
+
+      // sender 필터: visualboard-sidepanel에서 온 메시지만 처리
+      if (sender !== "visualboard-sidepanel") {
+        return;
+      }
 
       if (type === "STORY_STATE_UPDATE") {
         console.log("[test-board] STORY_STATE_UPDATE received:", state, "scenarioKey:", scenarioKey);
