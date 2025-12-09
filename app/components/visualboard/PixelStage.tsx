@@ -1,77 +1,177 @@
 "use client";
 
 import type { StoryState, LangCode } from "@/app/types";
+import type { Gender } from "./VisualBoard";
+
+type StageCharacter = StoryState["characters"][number] & { gender: Gender };
 
 type PixelStageProps = {
   state: StoryState;
   lang: LangCode;
+  characters: StageCharacter[];
 };
 
-// 이모지 결정 유틸 함수 (나중에 도트 스프라이트로 교체하기 쉽도록)
-function getCharacterEmoji(index: number): string {
-  // 임시: 인덱스 짝수 → 남, 홀수 → 여
-  return index % 2 === 0 ? "🧍‍♂️" : "🧍‍♀️";
+// 성별에 따른 캐릭터 이모지 결정
+function getCharacterEmoji(gender: Gender): string {
+  switch (gender) {
+    case "male":
+      return "🧍‍♂️";
+    case "female":
+      return "🧍‍♀️";
+    case "unknown":
+    default:
+      return "❔";
+  }
 }
 
 // 감정을 기반으로 이모지 결정
-// 우선순위: moodState.label → mood → description 키워드 검색
+// 1순위: moodState.label (모델이 정해준 라벨)
+// 2순위: description 키워드 검색 (한/영 혼합)
 function getMoodEmoji(character: StoryState["characters"][0]): string {
-  // 1순위: moodState.label
   const label = character.moodState?.label?.toLowerCase();
-  // 2순위: mood
-  const mood = character.mood?.toLowerCase();
-  // 3순위: description (키워드 검색용)
   const description = character.moodState?.description?.toLowerCase() || "";
-  
-  // 우선순위에 따라 source 결정
-  const source = label || mood;
-  
-  // source가 있으면 source 기반으로 매핑
-  if (source) {
-    if (source.includes("anger") || source.includes("rage")) return "😡";
-    if (source.includes("sad") || source.includes("grief")) return "😢";
-    if (source.includes("fear") || source.includes("terror")) return "😱";
-    if (source.includes("anxiety") || source.includes("nervous") || source.includes("tense")) return "😰";
-    if (
-      source.includes("joy") ||
-      source.includes("happy") ||
-      source.includes("happiness") ||
-      source.includes("excitement") ||
-      source.includes("love")
-    )
-      return "😊";
-    if (source.includes("neutral") || source.includes("calm")) return "😐";
+
+  // --- 1단계: label 기준 매핑 --- //
+  if (label) {
+    switch (label) {
+      case "joy":
+        // 기쁨 / 행복
+        return "😊";
+      case "tension":
+        // 긴장 / 불안
+        return "😰";
+      case "anger":
+        // 분노
+        return "😡";
+      case "sadness":
+        // 슬픔
+        return "😢";
+      case "fear":
+        // 두려움 / 공포
+        return "😱";
+      case "surprise":
+        // 놀람
+        return "😲";
+      case "neutral":
+        // 차분 / 무표정
+        return "😐";
+      case "love":
+        // 사랑 / 설렘
+        return "😍";
+      case "contempt":
+        // 경멸 / 냉소
+        return "😒";
+      default:
+        break; // 아래 description fallback으로
+    }
   }
-  
-  // source가 없거나 매핑되지 않았으면 description 키워드 검색
+
+  // --- 2단계: description 키워드 기반 fallback --- //
   if (description) {
-    // 분노/화/격노
-    if (description.includes("분노") || description.includes("화") || description.includes("격노") || description.includes("angry") || description.includes("rage")) {
+    // 분노 / 짜증 / 질투
+    if (
+      description.includes("분노") ||
+      description.includes("화") ||
+      description.includes("격노") ||
+      description.includes("질투") ||
+      description.includes("시기") ||
+      description.includes("angry") ||
+      description.includes("rage")
+    ) {
       return "😡";
     }
-    // 슬픔/울/눈물
-    if (description.includes("슬픔") || description.includes("울") || description.includes("눈물") || description.includes("sad") || description.includes("grief")) {
+
+    // 슬픔 / 울음 / 눈물
+    if (
+      description.includes("슬픔") ||
+      description.includes("슬프") ||
+      description.includes("울") ||
+      description.includes("눈물") ||
+      description.includes("sad") ||
+      description.includes("grief")
+    ) {
       return "😢";
     }
-    // 두려움/겁/공포
-    if (description.includes("두려움") || description.includes("겁") || description.includes("공포") || description.includes("fear") || description.includes("terror")) {
+
+    // 두려움 / 공포 / 겁
+    if (
+      description.includes("두려움") ||
+      description.includes("두려워") ||
+      description.includes("겁") ||
+      description.includes("공포") ||
+      description.includes("fear") ||
+      description.includes("terror")
+    ) {
       return "😱";
     }
-    // 긴장/불안
-    if (description.includes("긴장") || description.includes("불안") || description.includes("tension") || description.includes("anxious") || description.includes("anxiety")) {
+
+    // 긴장 / 불안 / 초조
+    if (
+      description.includes("긴장") ||
+      description.includes("불안") ||
+      description.includes("초조") ||
+      description.includes("tension") ||
+      description.includes("anxious") ||
+      description.includes("anxiety") ||
+      description.includes("nervous")
+    ) {
       return "😰";
     }
-    // 행복/기쁨/설렘
-    if (description.includes("행복") || description.includes("기쁨") || description.includes("설렘") || description.includes("happy") || description.includes("joy") || description.includes("excited")) {
+
+    // 사랑 / 설렘 / 호감
+    if (
+      description.includes("사랑") ||
+      description.includes("좋아한") ||
+      description.includes("호감") ||
+      description.includes("설렘") ||
+      description.includes("두근") ||
+      description.includes("두근거") ||
+      description.includes("love") ||
+      description.includes("affection")
+    ) {
+      return "😍";
+    }
+
+    // 행복 / 기쁨 / 즐거움
+    if (
+      description.includes("행복") ||
+      description.includes("기쁨") ||
+      description.includes("기뻐") ||
+      description.includes("즐거움") ||
+      description.includes("즐겁") ||
+      description.includes("happy") ||
+      description.includes("joy") ||
+      description.includes("excited")
+    ) {
       return "😊";
     }
-    // 무표정/담담/냉정
-    if (description.includes("무표정") || description.includes("담담") || description.includes("냉정") || description.includes("neutral") || description.includes("calm")) {
+
+    // 경멸 / 비웃음 / 냉소
+    if (
+      description.includes("경멸") ||
+      description.includes("비웃") ||
+      description.includes("냉소") ||
+      description.includes("멸시") ||
+      description.includes("contempt") ||
+      description.includes("sneer")
+    ) {
+      return "😒";
+    }
+
+    // 무표정 / 담담 / 차분
+    if (
+      description.includes("무표정") ||
+      description.includes("담담") ||
+      description.includes("차분") ||
+      description.includes("침착") ||
+      description.includes("neutral") ||
+      description.includes("calm")
+    ) {
       return "😐";
     }
   }
-  
-  // 기본값
+
+  // --- 기본값 (애매할 때) --- //
   return "🙂";
 }
 
@@ -92,9 +192,8 @@ function getSceneBackgroundColor(sceneType: string): string {
   return "bg-gradient-to-br from-slate-50 to-slate-100";
 }
 
-export default function PixelStage({ state, lang }: PixelStageProps) {
+export default function PixelStage({ state, lang, characters }: PixelStageProps) {
   const scene = state.scene;
-  const characters = state.characters || [];
   const backgroundClass = getSceneBackgroundColor(scene?.type || "");
 
   return (
@@ -117,7 +216,7 @@ export default function PixelStage({ state, lang }: PixelStageProps) {
           <div className="absolute inset-0 flex items-end justify-center gap-4 px-4 pb-4">
             {characters.map((character, index) => {
               const moodEmoji = getMoodEmoji(character);
-              const genderEmoji = getCharacterEmoji(index);
+              const genderEmoji = getCharacterEmoji(character.gender);
               
               return (
                 <div

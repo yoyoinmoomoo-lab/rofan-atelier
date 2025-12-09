@@ -20,7 +20,6 @@ type BackstageCastPanelProps = {
   storyCharacters: Array<{
     name: string;
     slot: CharacterSlot;
-    mood: string;
   }>;
   cast: BackstageCastState;
   onCastChange: (next: BackstageCastState) => void;

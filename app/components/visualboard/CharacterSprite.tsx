@@ -1,31 +1,26 @@
 "use client";
 
-import type { CharacterSlot, CharacterMood, CharacterMoodState, LangCode } from "@/app/types";
+import type { CharacterSlot, CharacterMoodState, LangCode } from "@/app/types";
 
 interface CharacterSpriteProps {
   name: string;
   slot: CharacterSlot;
-  mood?: CharacterMood;
   moodState?: CharacterMoodState;
   lang: LangCode;
 }
 
-// 감정에 따른 테두리 색상 매핑 (v0.2: 비주얼 개선)
+// 감정에 따른 테두리 색상 매핑 (moodState.label 기반)
 const MOOD_COLOR_MAP: Record<string, string> = {
-  // 기존 타입
+  // moodState.label 값들
   neutral: "ring-slate-300",
-  happy: "ring-emerald-400",
-  angry: "ring-red-400",
-  sad: "ring-sky-400",
-  shy: "ring-pink-400",
-  surprised: "ring-purple-400",
-  // 한글 감정명도 지원 (API 응답에 따라)
-  평온: "ring-emerald-400",
-  긴장: "ring-amber-400",
-  분노: "ring-red-400",
-  슬픔: "ring-sky-400",
-  부끄러움: "ring-pink-400",
-  놀람: "ring-purple-400",
+  joy: "ring-emerald-400",
+  anger: "ring-red-400",
+  sadness: "ring-sky-400",
+  fear: "ring-amber-400",
+  surprise: "ring-purple-400",
+  tension: "ring-amber-400",
+  love: "ring-pink-400",
+  contempt: "ring-red-400",
 };
 
 // 슬롯 위치에 따른 flex 정렬
@@ -38,12 +33,12 @@ const slotPositions: Record<CharacterSlot, string> = {
 export default function CharacterSprite({
   name,
   slot,
-  mood,
   moodState,
   lang,
 }: CharacterSpriteProps) {
-  const moodKey = mood?.trim() ?? "";
-  const ringClass = MOOD_COLOR_MAP[moodKey] ?? "ring-slate-300";
+  // moodState.label을 기반으로 ring 색상 결정
+  const moodLabel = moodState?.label?.toLowerCase() ?? "";
+  const ringClass = MOOD_COLOR_MAP[moodLabel] ?? "ring-slate-300";
   const initial = name?.[0]?.toUpperCase() ?? "?";
 
   // moodState의 description 또는 label을 표시할 텍스트 결정
@@ -51,8 +46,6 @@ export default function CharacterSprite({
     ? moodState.description 
     : moodState?.label 
     ? moodState.label 
-    : mood && mood !== "neutral" 
-    ? mood 
     : null;
 
   return (

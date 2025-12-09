@@ -109,7 +109,6 @@ export async function POST(request: NextRequest) {
     {
       "name": "캐릭터 이름",
       "slot": "left" | "center" | "right",
-      "mood": "neutral" | "happy" | "angry" | "sad" | "shy" | "surprised",
       "moodState": {
         "label": "joy" | "tension" | "anger" | "sadness" | "fear" | "surprise" | "neutral" | "love" | "contempt",
         "description": "캐릭터의 현재 감정 상태에 대한 간단한 설명 (1-2문장)"
@@ -181,7 +180,6 @@ JSON만 반환하고, 다른 설명은 하지 마.`;
     {
       "name": "캐릭터 이름",
       "slot": "left" | "center" | "right",
-      "mood": "neutral" | "happy" | "angry" | "sad" | "shy" | "surprised",
       "moodState": {
         "label": "joy" | "tension" | "anger" | "sadness" | "fear" | "surprise" | "neutral" | "love" | "contempt",
         "description": "감정 상태 설명 (1-2문장)"
@@ -315,9 +313,7 @@ JSON만 반환하고, 다른 설명은 하지 마.`;
         if (
           typeof c.name !== "string" ||
           typeof c.slot !== "string" ||
-          !["left", "center", "right"].includes(c.slot) ||
-          typeof c.mood !== "string" ||
-          !["neutral", "happy", "angry", "sad", "shy", "surprised"].includes(c.mood)
+          !["left", "center", "right"].includes(c.slot)
         ) {
           throw new Error("INVALID_CHARACTER_FIELDS");
         }
@@ -342,7 +338,6 @@ JSON만 반환하고, 다른 설명은 하지 마.`;
         return {
           name: c.name,
           slot: c.slot as "left" | "center" | "right",
-          mood: c.mood as "neutral" | "happy" | "angry" | "sad" | "shy" | "surprised",
           moodState: moodState,
         };
       });
@@ -384,7 +379,6 @@ JSON만 반환하고, 다른 설명은 하지 마.`;
         throw new Error("INVALID_DIALOGUE_IMPACT");
       }
 
-      // v0.2: 새로운 필드 포함, relations는 빈 배열로, mood는 'neutral'로 고정
       const state: StoryState = {
         scene: {
           summary: scene.summary,
@@ -392,12 +386,8 @@ JSON만 반환하고, 다른 설명은 하지 마.`;
           location_name: location_name,
           backdrop_style: backdrop_style,
         },
-        characters: characters.map((char) => ({
-          ...char,
-          mood: "neutral" as const, // v0: mood는 항상 neutral로 고정 (하위 호환성)
-          moodState: char.moodState, // v0.2: 상세한 무드 정보
-        })),
-        relations: [], // v0: relations는 항상 빈 배열
+        characters: characters,
+        relations: [], // relations는 항상 빈 배열
         dialogue_impact: obj.dialogue_impact as "low" | "medium" | "high",
       };
 

@@ -92,8 +92,6 @@ export type SceneType = "castle" | "room" | "garden" | "hall" | "carriage" | "fo
 
 export type CharacterSlot = "left" | "center" | "right";
 
-export type CharacterMood = "neutral" | "happy" | "angry" | "sad" | "shy" | "surprised";
-
 // 캐릭터 무드 라벨 타입
 export type MoodLabel = "joy" | "tension" | "anger" | "sadness" | "fear" | "surprise" | "neutral" | "love" | "contempt";
 
@@ -114,9 +112,8 @@ export interface StoryState {
   characters: Array<{
     name: string;
     slot: CharacterSlot;
-    mood: CharacterMood; // 하위 호환성을 위해 유지 (v0.2에서 추가된 mood 객체와 병행)
-    moodState?: CharacterMoodState; // v0.2: 상세한 무드 정보
-    visualKey?: string; // v0.2: 캐릭터 비주얼 키 (예: 'liliana', 'rebon')
+    moodState?: CharacterMoodState; // 상세한 무드 정보
+    visualKey?: string; // 캐릭터 비주얼 키 (예: 'liliana', 'rebon')
   }>;
   relations: Array<{
     a: string; // 캐릭터 A 이름

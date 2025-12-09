@@ -61,13 +61,6 @@ export default function CharacterStatusPanel({
                     <p>{character.moodState.description}</p>
                   ) : (
                     <>
-                      {/* mood 정보 */}
-                      {character.mood && character.mood !== "neutral" && (
-                        <p className="mb-1">
-                          <span className="font-medium">Mood: </span>
-                          {character.mood}
-                        </p>
-                      )}
                       {/* moodState.label이 있으면 표시 */}
                       {character.moodState?.label && (
                         <p>

@@ -7,12 +7,14 @@ import PixelStage from "./PixelStage";
 import CharacterStatusPanel from "./CharacterStatusPanel";
 import BackstageCastPanel from "./BackstageCastPanel";
 
-type Gender = "male" | "female" | "unknown";
+export type Gender = "male" | "female" | "unknown";
 
 type BackstageCastEntry = {
   name: string;
   gender: Gender;
 };
+
+type StageCharacter = StoryState["characters"][number] & { gender: Gender };
 
 type BackstageCastState = BackstageCastEntry[];
 
@@ -153,6 +155,20 @@ export default function VisualBoard({ state, lang, scenarioKey, onStateRestore }
     }));
   };
 
+  // 무대용 캐릭터 리스트 생성 (gender 정보 포함)
+  const castMap = new Map<string, BackstageCastEntry>();
+  currentCast.forEach((entry) => {
+    castMap.set(entry.name, entry);
+  });
+
+  const charactersWithGender: StageCharacter[] = state.characters.map((character) => {
+    const castItem = castMap.get(character.name);
+    return {
+      ...character,
+      gender: castItem?.gender ?? "unknown",
+    };
+  });
+
   if (!state) {
     return (
       <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg p-8 text-center text-text-muted">
@@ -164,7 +180,7 @@ export default function VisualBoard({ state, lang, scenarioKey, onStateRestore }
   return (
     <div className="space-y-4">
       {/* 1) 상단 무대: 이미지 레이어 */}
-      <PixelStage state={state} lang={lang} />
+      <PixelStage state={state} lang={lang} characters={charactersWithGender} />
 
       {/* 2) 하단 텍스트 패널: 장면 + 캐릭터 상태 */}
       <CharacterStatusPanel state={state} lang={lang} />

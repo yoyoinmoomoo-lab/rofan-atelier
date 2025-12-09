@@ -5,6 +5,7 @@ import type { StoryState, LangCode, AnalyzeChatRequest } from "@/app/types";
 import { getUIText } from "@/app/i18n/uiText";
 import VisualBoard from "@/app/components/visualboard/VisualBoard";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
+import { VISUALBOARD_VERSION } from "@/app/config/version";
 
 type TestBoardSearchParams = {
   embed?: string;
@@ -193,6 +194,9 @@ export default function TestBoardPage({
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <p className="text-xs text-[var(--text-muted)] text-center">
               {getUIText("footerPoweredBy", lang)}
+            </p>
+            <p className="text-[10px] text-[var(--text-muted)] text-right mt-2">
+              Rofan Visualboard v{VISUALBOARD_VERSION}
             </p>
           </div>
         </footer>
