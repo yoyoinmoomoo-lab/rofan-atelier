@@ -25,11 +25,18 @@ interface VisualBoardProps {
   lang: LangCode;
   scenarioKey?: string;
   onStateRestore?: (restoredState: StoryState) => void;
+  disableRestore?: boolean; // Chrome Extension 모드에서는 localStorage 복구 비활성화
 }
 
 const STATE_KEY_PREFIX = "rofan-visualboard-state::";
 
-export default function VisualBoard({ state, lang, scenarioKey, onStateRestore }: VisualBoardProps) {
+export default function VisualBoard({ 
+  state, 
+  lang, 
+  scenarioKey, 
+  onStateRestore,
+  disableRestore = false 
+}: VisualBoardProps) {
   const [castByScenario, setCastByScenario] = useState<CastByScenario>({});
   const hasLoadedStateRef = useRef<Record<string, boolean>>({});
   const lastSavedStateRef = useRef<Record<string, string>>({});
@@ -117,7 +124,9 @@ export default function VisualBoard({ state, lang, scenarioKey, onStateRestore }
   }, [castByScenario, scenarioKey, scenarioKeySafe, state]);
 
   // 마운트 시 시나리오별 마지막 무대 상태 복원 (시나리오별 최초 1회만 실행)
+  // Chrome Extension 모드에서는 복구 비활성화 (Extension이 보낸 데이터가 진실의 원천)
   useEffect(() => {
+    if (disableRestore) return; // Extension 모드에서는 복구하지 않음
     if (!scenarioKey) return;
     if (typeof window === "undefined") return;
     
@@ -141,7 +150,7 @@ export default function VisualBoard({ state, lang, scenarioKey, onStateRestore }
       console.warn("[Rofan Visualboard] Failed to restore story state", e);
       hasLoadedStateRef.current[scenarioKeySafe] = true; // 에러가 나도 플래그 설정
     }
-  }, [scenarioKey, onStateRestore]);
+  }, [scenarioKey, onStateRestore, disableRestore]);
 
   // state가 바뀔 때 시나리오별 마지막 무대 상태 저장 (이전 값과 다를 때만)
   useEffect(() => {

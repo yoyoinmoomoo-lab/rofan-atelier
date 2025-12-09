@@ -178,6 +178,7 @@ export default function TestBoardPage({
                 onStateRestore={(restoredState) => {
                   setState(restoredState);
                 }}
+                disableRestore={isEmbed} // embed 모드(Chrome Extension)에서는 복구 비활성화
               />
             </div>
           )}
