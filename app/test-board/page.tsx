@@ -2,6 +2,8 @@
 
 import { useState, useEffect, use } from "react";
 import type { StoryState, LangCode, AnalyzeChatRequest } from "@/app/types";
+import type { VisualboardIncomingMessage } from "@/app/types/visualboardMessages";
+import { isValidVisualboardMessage } from "@/app/types/visualboardMessages";
 import { getUIText } from "@/app/i18n/uiText";
 import VisualBoard from "@/app/components/visualboard/VisualBoard";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
@@ -31,21 +33,35 @@ export default function TestBoardPage({
       // 디버그용: 어떤 origin에서 무엇이 오는지 전부 찍기
       console.log("[test-board] message received:", event.origin, event.data);
 
-      const data = event.data || {};
-      const { type, state, scenarioKey, sender } = data as any;
+      const data = event.data;
 
-      // sender 필터: visualboard-sidepanel에서 온 메시지만 처리
-      if (sender !== "visualboard-sidepanel") {
+      // 프로토콜 버전 및 sender 필터링
+      if (!isValidVisualboardMessage(data)) {
+        // 프로토콜 버전이 다른 경우 경고만 출력
+        if (data && typeof data === "object" && "protocol" in data) {
+          console.warn(
+            "[test-board] Received message with different protocol version:",
+            (data as { protocol?: unknown }).protocol
+          );
+        }
         return;
       }
 
-      if (type === "STORY_STATE_UPDATE") {
-        console.log("[test-board] STORY_STATE_UPDATE received:", state, "scenarioKey:", scenarioKey);
-        setState(state ?? null);
-        setScenarioKey(scenarioKey ?? null);
+      // 타입 안전하게 처리
+      const message = data as VisualboardIncomingMessage;
+
+      if (message.type === "STORY_STATE_UPDATE") {
+        console.log(
+          "[test-board] STORY_STATE_UPDATE received:",
+          message.state,
+          "scenarioKey:",
+          message.scenarioKey
+        );
+        setState(message.state ?? null);
+        setScenarioKey(message.scenarioKey ?? null);
       }
 
-      if (type === "RESET_STORY_STATE") {
+      if (message.type === "RESET_STORY_STATE") {
         console.log("[test-board] RESET_STORY_STATE received");
         setScenarioKey(null);
         setState(null);
