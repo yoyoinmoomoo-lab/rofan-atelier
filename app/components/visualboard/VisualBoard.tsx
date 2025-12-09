@@ -22,9 +22,12 @@ interface VisualBoardProps {
   state: StoryState;
   lang: LangCode;
   scenarioKey?: string;
+  onStateRestore?: (restoredState: StoryState) => void;
 }
 
-export default function VisualBoard({ state, lang, scenarioKey }: VisualBoardProps) {
+const STATE_KEY_PREFIX = "rofan-visualboard-state::";
+
+export default function VisualBoard({ state, lang, scenarioKey, onStateRestore }: VisualBoardProps) {
   const [castByScenario, setCastByScenario] = useState<CastByScenario>({});
 
   const scenarioKeySafe = scenarioKey ?? "__default__";
@@ -108,6 +111,38 @@ export default function VisualBoard({ state, lang, scenarioKey }: VisualBoardPro
       console.warn("[Rofan Visualboard] Failed to save cast to localStorage", e);
     }
   }, [castByScenario, scenarioKey, scenarioKeySafe, state]);
+
+  // 마운트 시 시나리오별 마지막 무대 상태 복원
+  useEffect(() => {
+    if (!scenarioKey) return;
+    if (typeof window === "undefined") return;
+
+    const key = `${STATE_KEY_PREFIX}${scenarioKey}`;
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return;
+
+    try {
+      const parsed = JSON.parse(raw) as StoryState;
+      if (onStateRestore) {
+        onStateRestore(parsed);
+      }
+    } catch (e) {
+      console.warn("[Rofan Visualboard] Failed to restore story state", e);
+    }
+  }, [scenarioKey, onStateRestore]);
+
+  // state가 바뀔 때 시나리오별 마지막 무대 상태 저장
+  useEffect(() => {
+    if (!scenarioKey || !state) return;
+    if (typeof window === "undefined") return;
+
+    const key = `${STATE_KEY_PREFIX}${scenarioKey}`;
+    try {
+      window.localStorage.setItem(key, JSON.stringify(state));
+    } catch (e) {
+      console.warn("[Rofan Visualboard] Failed to save story state", e);
+    }
+  }, [scenarioKey, state]);
 
   const currentCast = castByScenario[scenarioKeySafe] ?? [];
 

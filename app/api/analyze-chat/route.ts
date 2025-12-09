@@ -434,8 +434,8 @@ JSON만 반환하고, 다른 설명은 하지 마.`;
         console.error(`[AnalyzeChat] 2nd attempt also failed (${retryErrorMsg}, 재시도 소요: ${retryDuration}ms)`);
         console.error(`[AnalyzeChat] 재시도 에러 상세:`, retryError);
         return NextResponse.json(
-          { error: "Failed to parse response from OpenAI" },
-          { status: 500, headers: corsHeaders }
+          { error: "PARSE_FAILED" },
+          { status: 200, headers: corsHeaders }
         );
       }
     }

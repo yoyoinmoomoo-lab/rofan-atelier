@@ -171,6 +171,9 @@ export default function TestBoardPage({
                 state={state}
                 lang={lang}
                 scenarioKey={scenarioKey ?? undefined}
+                onStateRestore={(restoredState) => {
+                  setState(restoredState);
+                }}
               />
             </div>
           )}
