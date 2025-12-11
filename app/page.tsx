@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import Tabs from "./components/Tabs";
 import NameGenerator from "./components/NameGenerator";
 import FamilyGenerator from "./components/FamilyGenerator";
@@ -103,33 +104,21 @@ function HomeContent() {
     <div className="flex flex-col min-h-screen bg-[var(--background)]">
       {/* 헤더 */}
       <header className="border-b border-[var(--card-border)]/30 bg-[var(--card-bg)]">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          {/* 모바일: 세로 배치, 데스크톱: 가로 배치 */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6">
-            {/* 타이틀 영역 */}
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <h1 className="font-serif text-2xl sm:text-3xl font-semibold text-foreground">
-                  {getUIText("appTitle", lang)}
-                </h1>
-                <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-amber-100 text-amber-700 border border-amber-200">
-                  Beta
-                </span>
-              </div>
-              <p className="text-sm text-[var(--text-muted)] mt-1">
-                {getUIText("appSubtitle", lang)}
-              </p>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <h1 className="font-serif text-xl sm:text-2xl font-semibold text-foreground">
+                Rofan.world
+              </h1>
+              <span className="px-2 py-0.5 text-xs rounded-full bg-amber-100 text-amber-700 border border-amber-200">
+                Beta
+              </span>
             </div>
-            
-            {/* 언어 선택 영역 */}
-            <div className="flex items-center gap-4">
-              <LanguageSelector 
-                currentLang={lang} 
-                onChange={setLang} 
-                currentPage={activeTab === "name" ? "given" : activeTab === "family" ? "family" : "given"}
-              />
-              <div className="text-[var(--accent)] text-2xl hidden md:block">✧</div>
-            </div>
+            <LanguageSelector 
+              currentLang={lang} 
+              onChange={setLang} 
+              currentPage={activeTab === "name" ? "given" : activeTab === "family" ? "family" : "given"}
+            />
           </div>
         </div>
       </header>
@@ -152,9 +141,31 @@ function HomeContent() {
         </section>
       </main>
 
-      {/* Footer - 모델 정보 */}
+      {/* Footer - 모델 정보 및 링크 */}
       <footer className="border-t border-[var(--card-border)]/30 bg-[var(--card-bg)] mt-auto">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-center gap-4 md:gap-6 mb-4">
+            <Link 
+              href="/privacy" 
+              className="text-xs text-[var(--text-muted)] hover:text-foreground transition-colors"
+            >
+              {lang === "ko" ? "개인정보처리방침" : "Privacy Policy"}
+            </Link>
+            <span className="text-xs text-[var(--text-muted)] hidden md:inline">·</span>
+            <Link 
+              href="/disclaimer" 
+              className="text-xs text-[var(--text-muted)] hover:text-foreground transition-colors"
+            >
+              {lang === "ko" ? "면책 조항" : "Disclaimer"}
+            </Link>
+            <span className="text-xs text-[var(--text-muted)] hidden md:inline">·</span>
+            <a 
+              href="mailto:moomoojojoyoyo@gmail.com" 
+              className="text-xs text-[var(--text-muted)] hover:text-foreground transition-colors"
+            >
+              {lang === "ko" ? "문의하기" : "Contact"}
+            </a>
+          </div>
           <p className="text-xs text-[var(--text-muted)] text-center">
             {getUIText("footerPoweredBy", lang)}
           </p>
