@@ -110,7 +110,7 @@ export interface Scene {
   backdrop_style?: string; // v0.2: 배경 스타일 설명 (예: '화려한 샹들리에가 달린', '어두운')
   characters: Array<{
     name: string;
-    slot: CharacterSlot;
+    slot?: CharacterSlot; // optional: 무대에 표시할 주요 캐릭터만 지정, 없으면 backstage로 표시
     moodState?: CharacterMoodState; // 상세한 무드 정보
     visualKey?: string; // 캐릭터 비주얼 키 (예: 'liliana', 'rebon')
     // Step4: 캐릭터 매칭 필드 (optional, 하위 호환성)

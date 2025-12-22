@@ -12,7 +12,7 @@ type BackstageCastEntry = BackstageCastEntryV2 & {
 type BackstageCastPanelProps = {
   storyCharacters: Array<{
     name: string;
-    slot: CharacterSlot;
+    slot?: CharacterSlot;
   }>;
   cast: BackstageCastEntryV2[];
   onCastChange: (next: BackstageCastEntryV2[]) => void;

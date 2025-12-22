@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import type { StoryState, StoryStateV2, Scene, LangCode, CastStoreV2, BackstageCastEntryV2, CastGender } from "@/app/types";
+import type { StoryState, StoryStateV2, Scene, LangCode, CastStoreV2, BackstageCastEntryV2, CastGender, CharacterMoodState } from "@/app/types";
 import { getUIText } from "@/app/i18n/uiText";
 import {
   loadCastStore,
@@ -18,7 +18,15 @@ import BackstageCastPanel from "./BackstageCastPanel";
 
 export type Gender = CastGender;
 
-type StageCharacter = NonNullable<StoryState["characters"]>[number] & { gender: Gender };
+type StageCharacter = {
+  name: string;
+  slot?: "left" | "center" | "right";
+  moodState?: CharacterMoodState;
+  visualKey?: string;
+  refId?: string;
+  isNew?: boolean;
+  gender: Gender;
+};
 
 type CastByScenario = Record<string, CastStoreV2>;
 
@@ -279,6 +287,7 @@ export default function VisualBoard({
           });
 
           // scene을 StoryState 형태로 변환 (PixelStage 호환성)
+          // v1 형식 호환을 위해 타입 단언 사용 (v2의 optional slot을 v1 형식으로 변환)
           const sceneAsState: StoryState = {
             scene: {
               summary: scene.summary,
@@ -286,10 +295,19 @@ export default function VisualBoard({
               location_name: scene.location_name,
               backdrop_style: scene.backdrop_style,
             },
-            characters: scene.characters,
+            characters: scene.characters as any, // v1 형식 호환 (slot optional → 필수로 변환)
             relations: [],
             dialogue_impact: scene.dialogue_impact,
           };
+
+          // 디버깅: scene 데이터 확인
+          console.log(`[VisualBoard] Scene ${index}:`, {
+            sceneType: scene.type,
+            locationName: scene.location_name,
+            charactersCount: scene.characters.length,
+            sceneCharactersWithGenderCount: sceneCharactersWithGender.length,
+            sceneAsState: sceneAsState,
+          });
 
           const isActive = index === activeSceneIndex;
 

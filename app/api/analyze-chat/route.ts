@@ -8,6 +8,63 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// 캐릭터 설정 + 세계관 설명 (테스트용 하드코딩)
+const CHARACTER_AND_WORLD_BIBLE = `
+
+[기존 캐릭터 설정]
+
+페스텔 메비헤르(26) : 제 1 황태자. 남색 머리, 짙은 검은 눈, 날카로운 인상, 180대 중반의 키. 단정하고 균형 잡힌 체형. 늘 깔끔하게 차려 입으며, 약간의 귀족적 위엄이 있음. 눈빛이 차분하면서도 순간적으로 칼날처럼 날카로움.
+
+#성격 : 부드러움. 잔잔함. 무뚝뚝. 진중. 칼같음. 평판이 좋음. 인기 많음. 좋아하는 사람에게는 반말.
+
+#특징 : 쓴 차와 커피를 선호. 고기 음식을 좋아함. 편식 잘함. 검술, 체력 단련을 거르지 않음. 마법은 기본 바람 마법만 다룰 수 있음.
+
+야닉 웨트링겔(29) : 웨트링겔 가문의 장남이자 마탑의 5인중 하나. 붉은 머리, 초록색 눈, 날티나는 인상, 180대 후반의 키. 근육질, 어깨 넓음. 얼굴에는 전투나 사건에서 남은 흉터 몇 개, 그러나 매력적.
+
+#성격 : 다혈질. 싸가지. 제멋대로. 욕이 익숙함. 능글스럽고 플러팅에 능하다. 감정 표현 솔직. 즉흥적.
+
+#특징 : 마법에 소질, 소드마스터. 단 음식 좋아함. 여자 밝힘.
+
+베니스 카르틴(25) : 신전의 대사제. 긴 백색 머리, 푸른 눈. 나른하고 부드러운 인상.
+
+#성격 : 나른함. 여유로움. 느릿느릿. 단호함. 흡연자.
+
+#특징 : 신성력 능숙. 신을 맹신하지 않음.
+
+- 페스텔, 야닉, 베니스 모두 리리슈에게 호감이 있음.
+
+- 세 남자 모두 리리슈를 지켜주고 싶어함.
+
+- 릴리아나를 싫어함.
+
+리리슈 웨트링겔(21) : 웨트링겔 가문의 막내딸. 핑크색 머리. 순진한 척이 특기.
+
+릴리아나 : 웨트링겔 공작가의 2녀.
+
+페니 : 릴리아나의 시녀. 갈색 단발, 주근깨.
+
+[세계관 / 추가 고정 인물]
+
+▪︎ 웨트링겔 공작가 : 1남 2녀. 현 가주는 케슨 공작(49세). 장남 야닉, 장녀 릴리아나, 차녀 리리슈.
+
+▪︎ 마탑 : 야닉은 현 마탑 최고 책임자 5인 중 하나.
+
+▪︎ 황궁 :
+  - 현 황제(57세): 카디론 메비헤르. 페스텔의 아버지. 웨트링겔 공작가를 지속적으로 주시함.
+  - 황후: 이자벨라 메비헤르. 카디론과 금슬이 좋음.
+  - 자식 총 5명, 페스텔(장남) 아래로 동생 4명
+  - 웨트링겔 공작가를 지속적으로 주시
+
+▪︎ 황궁 릴리아나의 방 : 본궁이 아닌 별채에 위치.
+
+카디론 메비헤르(57) : 현 황제. 페스텔의 아버지. 웨트링겔 공작가를 지속적으로 주시함.
+
+이자벨라 메비헤르 : 현 황후. 카디론과 금슬이 좋음.
+
+케슨 웨트링겔(49) : 웨트링겔 공작가의 현 가주. 야닉, 릴리아나, 리리슈의 아버지.
+
+`;
+
 // CORS 헤더 설정 (Chrome Extension 호출 대비)
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -234,8 +291,33 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // CHARACTER & WORLD BIBLE 블록 생성
+    const characterWorldBibleBlock = CHARACTER_AND_WORLD_BIBLE?.trim()
+      ? `
+
+[CANONICAL CHARACTER & WORLD SETUP]
+
+아래는 사용자가 제공한 고정 캐릭터 및 세계관 설정이다.
+
+등장인물 해석 및 매칭 시 이 정보를 최우선으로 참고한다.
+
+이름이 명시적으로 등장하고 실제로 행동하거나 대사를 하는 인물은 반드시 characters에 포함한다.
+
+기존 설정에 동일한 인물이 있으면 해당 캐릭터를 사용한다.
+
+기존 설정에 없는 인물이 명확히 등장한 경우에는 새 캐릭터로 생성해도 된다.
+
+${CHARACTER_AND_WORLD_BIBLE.trim()}
+
+[/CANONICAL CHARACTER & WORLD SETUP]
+
+`
+      : "";
+
     // 프롬프트 구성 (Step3: Multi-scene 지원)
     const systemPrompt = `너는 로맨스 판타지 소설의 '무대 감독'이야. 주어진 대화/텍스트를 분석해서 등장인물, 감정, 분위기, 관계를 JSON 형식으로 추출해줘.
+
+${characterWorldBibleBlock}
 
 반드시 다음 JSON 구조를 정확히 따라야 해:
 
@@ -249,10 +331,10 @@ export async function POST(request: NextRequest) {
       "characters": [
         {
           "name": "캐릭터 이름",
-          "slot": "left" | "center" | "right",
+          "slot": "left" | "center" | "right" (선택사항),
           "moodState": {
             "label": "joy" | "tension" | "anger" | "sadness" | "fear" | "surprise" | "neutral" | "love" | "contempt",
-            "description": "캐릭터의 현재 감정 상태에 대한 간단한 설명 (1-2문장)"
+            "description": "캐릭터의 현재 감정 상태에 대한 간단한 설명 (1-2문장, 필수)"
           }
         }
       ],
@@ -269,6 +351,8 @@ export async function POST(request: NextRequest) {
 - 결과는 scenes 배열로 모든 장면을 포함해야 한다.
 - 각 scene은 해당 장면에 등장한 캐릭터만 넣기 (전체 캐릭터를 매 scene에 복붙 금지).
 - 장면을 합치지 말 것.
+- 캐릭터 누락 금지: 지문에 고유명사로 등장하는 모든 인물(예: "제릴", "부관 제릴", "황제", "기사" 등)은 기존 설정에 없어도 반드시 characters 배열에 포함한다. 직책이나 호칭과 함께 언급된 인물도 포함 대상이다.
+- 장면 전환 시 캐릭터 정리: 장면(scene)이 전환되면, 해당 장면의 서술에 더 이상 등장하지 않는 인물은 무대(stage)에서 제외할 수 있다.
 
 중복 방지 규칙:
 - 같은 location_name(장소 이름)이면 하나의 scene으로 유지하라.
@@ -281,8 +365,8 @@ export async function POST(request: NextRequest) {
 - scene.type은 장면의 배경을 나타내는 타입 중 하나여야 해.
 - scene.location_name은 구체적이고 생생한 장소 이름을 제공해 (모르면 빈 문자열 허용).
 - scene.backdrop_style은 배경의 분위기나 스타일을 묘사하는 짧은 문구여야 해 (모르면 빈 문자열 허용).
-- characters 배열에는 해당 장면에 등장하는 주요 인물들을 최대 3명까지 포함 (slot: left, center, right).
-- characters 각 항목은 반드시 moodState.description에 최소 1문장 이상의 상태/행동 요약을 포함해야 해 (빈 문자열 금지).
+- characters 배열에는 해당 장면에 등장하는 모든 주요 인물을 누락 없이 포함한다. 권장 인원은 2~8명이며, 캐릭터를 임의로 생략하지 않는다. slot은 UI 배치를 위한 힌트이며 필수 값이 아니다. slot이 없는 캐릭터는 backstage 캐릭터로 처리될 수 있다.
+- 신규 인물 포함 규칙 (중요): 지문에 고유명사로 등장하는 모든 인물은 CHARACTER & WORLD BIBLE에 없어도 반드시 characters에 포함한다. 예: "제릴", "부관 제릴", "황제", "카디론 메비헤르", "기사", "시녀" 등. 직책/호칭과 함께 언급된 인물도 포함 대상이다.
 - characters 각 항목은 반드시 moodState.description에 최소 1문장 이상의 상태/행동 요약을 포함해야 해 (빈 문자열 금지).
 - characters 각 항목의 moodState.label은 다음 중 하나여야 해:
   * "joy": 기쁨, 행복, 즐거움
@@ -365,7 +449,15 @@ ${knownCastJson}
 - 기존 캐릭터가 사라지면 characters 배열에서 제거해`
       : `\n\n이번 텍스트를 바탕으로 새로운 StoryState를 처음부터 만들어줘.`;
 
-    const userPrompt = `분석할 소설 텍스트:\n"""${trimmedChatText}"""\n${previousStateBlock}
+    const userPrompt = `분석할 소설 텍스트:
+
+"""
+
+${trimmedChatText}
+
+"""
+
+${previousStateBlock}
 
 반드시 아래 StoryState 타입에 맞는 JSON만 반환해 (scenes 배열로 모든 장면을 포함):
 
@@ -379,10 +471,10 @@ ${knownCastJson}
       "characters": [
         {
           "name": "캐릭터 이름",
-          "slot": "left" | "center" | "right",
+          "slot": "left" | "center" | "right" (선택사항, 무대에 표시할 주요 캐릭터만 지정),
           "moodState": {
             "label": "joy" | "tension" | "anger" | "sadness" | "fear" | "surprise" | "neutral" | "love" | "contempt",
-            "description": "감정 상태 설명 (1-2문장)"
+            "description": "감정 상태 설명 (1-2문장, 필수)"
           }
         }
       ],
@@ -392,8 +484,11 @@ ${knownCastJson}
   "activeSceneIndex": 0
 }
 
-중요: 장면을 합치지 말고, 전환 신호가 있으면 반드시 분리해라.
-단, 같은 location_name은 하나의 scene으로 유지하라 (같은 장소 중복 생성 금지).`;
+중요 규칙:
+- 장면을 합치지 말고, 전환 신호가 있으면 반드시 분리해라.
+- 같은 location_name은 하나의 scene으로 유지하라 (같은 장소 중복 생성 금지).
+- 캐릭터 누락 금지: 지문에 고유명사로 등장하는 모든 인물(예: "제릴", "부관 제릴", "황제", "카디론 메비헤르" 등)은 기존 설정에 없어도 반드시 characters 배열에 포함한다. 직책/호칭과 함께 언급된 인물도 포함 대상이다.
+- 장면 전환 시 캐릭터 정리: 장면(scene)이 전환되면, 해당 장면의 서술에 더 이상 등장하지 않는 인물은 무대(stage)에서 제외할 수 있다.`;
 
     // OpenAI 호출 및 파싱 함수
     const callOpenAIAndParse = async (attempt: number): Promise<StoryState> => {
@@ -515,12 +610,16 @@ ${knownCastJson}
               throw new Error(`INVALID_CHARACTER_ITEM_${index}`);
             }
             const c = char as Record<string, unknown>;
-            if (
-              typeof c.name !== "string" ||
-              typeof c.slot !== "string" ||
-              !["left", "center", "right"].includes(c.slot)
-            ) {
+            if (typeof c.name !== "string") {
               throw new Error(`INVALID_CHARACTER_FIELDS_${index}`);
+            }
+            
+            // slot은 optional (없으면 undefined로 처리)
+            let slot: "left" | "center" | "right" | undefined = undefined;
+            if (c.slot !== undefined && c.slot !== null) {
+              if (typeof c.slot === "string" && ["left", "center", "right"].includes(c.slot)) {
+                slot = c.slot as "left" | "center" | "right";
+              }
             }
             
             // moodState 파싱 (선택적)
@@ -574,7 +673,7 @@ ${knownCastJson}
             
             return {
               name: c.name,
-              slot: c.slot as "left" | "center" | "right",
+              slot: slot, // optional: slot이 없으면 undefined
               moodState: moodState,
               refId, // Step4: 추가
               isNew, // Step4: 추가
@@ -645,12 +744,16 @@ ${knownCastJson}
             throw new Error("INVALID_CHARACTER_ITEM");
           }
           const c = char as Record<string, unknown>;
-          if (
-            typeof c.name !== "string" ||
-            typeof c.slot !== "string" ||
-            !["left", "center", "right"].includes(c.slot)
-          ) {
+          if (typeof c.name !== "string") {
             throw new Error("INVALID_CHARACTER_FIELDS");
+          }
+          
+          // slot은 optional (없으면 undefined로 처리)
+          let slot: "left" | "center" | "right" | undefined = undefined;
+          if (c.slot !== undefined && c.slot !== null) {
+            if (typeof c.slot === "string" && ["left", "center", "right"].includes(c.slot)) {
+              slot = c.slot as "left" | "center" | "right";
+            }
           }
           
           // moodState 파싱 (선택적)
@@ -672,7 +775,7 @@ ${knownCastJson}
           
           return {
             name: c.name,
-            slot: c.slot as "left" | "center" | "right",
+            slot: slot, // optional: slot이 없으면 undefined
             moodState: moodState,
           };
         });

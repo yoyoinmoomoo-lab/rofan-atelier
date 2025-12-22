@@ -1,9 +1,17 @@
 "use client";
 
-import type { StoryState, LangCode } from "@/app/types";
+import type { StoryState, LangCode, CharacterMoodState } from "@/app/types";
 import type { Gender } from "./VisualBoard";
 
-type StageCharacter = NonNullable<StoryState["characters"]>[number] & { gender: Gender };
+type StageCharacter = {
+  name: string;
+  slot?: "left" | "center" | "right";
+  moodState?: CharacterMoodState;
+  visualKey?: string;
+  refId?: string;
+  isNew?: boolean;
+  gender: Gender;
+};
 
 type PixelStageProps = {
   state: StoryState;
@@ -27,7 +35,7 @@ function getCharacterEmoji(gender: Gender): string {
 // 감정을 기반으로 이모지 결정
 // 1순위: moodState.label (모델이 정해준 라벨)
 // 2순위: description 키워드 검색 (한/영 혼합)
-function getMoodEmoji(character: NonNullable<StoryState["characters"]>[0]): string {
+function getMoodEmoji(character: { moodState?: CharacterMoodState }): string {
   const label = character.moodState?.label?.toLowerCase();
   const description = character.moodState?.description?.toLowerCase() || "";
 
@@ -195,6 +203,15 @@ function getSceneBackgroundColor(sceneType: string): string {
 export default function PixelStage({ state, lang, characters }: PixelStageProps) {
   const scene = state.scene;
   const backgroundClass = getSceneBackgroundColor(scene?.type || "");
+
+  // 디버깅: 데이터 확인
+  console.log("[PixelStage] Rendering:", {
+    hasScene: !!scene,
+    sceneType: scene?.type,
+    locationName: scene?.location_name,
+    charactersCount: characters.length,
+    characters: characters.map(c => c.name),
+  });
 
   return (
     <div className="rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm p-4 mb-4">

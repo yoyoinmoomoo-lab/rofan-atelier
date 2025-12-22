@@ -2,9 +2,9 @@
 
 로맨스 판타지 작가들을 위한 이름 및 가문명 생성 웹앱입니다.
 
-**Current Version: v1.2.0**
+**Current Version: v1.2.1**
 
-Compatible with Rofan Visualboard v0.2.0+
+Compatible with Rofan Visualboard v0.2.1+
 
 ## 기능
 

@@ -28,6 +28,25 @@ export default function TestBoardPage({
   const resolved = use(searchParams);
   const isEmbed = resolved.embed === "1";
 
+  // 컴포넌트 마운트 확인
+  useEffect(() => {
+    console.log("[test-board] Component mounted:", {
+      isEmbed,
+      initialState: state,
+      initialScenarioKey: scenarioKey,
+    });
+  }, []);
+
+  // state 변경 추적
+  useEffect(() => {
+    console.log("[test-board] State changed:", {
+      hasState: !!state,
+      stateType: typeof state,
+      stateValue: state,
+      scenarioKey,
+    });
+  }, [state, scenarioKey]);
+
   useEffect(() => {
     function handleMessage(event: MessageEvent) {
       // 디버그용: 어떤 origin에서 무엇이 오는지 전부 찍기
@@ -44,6 +63,10 @@ export default function TestBoardPage({
             (data as { protocol?: unknown }).protocol
           );
         }
+        console.log("[test-board] Message validation failed:", {
+          data,
+          isValid: isValidVisualboardMessage(data),
+        });
         return;
       }
 
@@ -57,6 +80,11 @@ export default function TestBoardPage({
           "scenarioKey:",
           message.scenarioKey
         );
+        console.log("[test-board] Setting state:", {
+          hasState: !!message.state,
+          stateType: typeof message.state,
+          stateKeys: message.state ? Object.keys(message.state) : [],
+        });
         setState(message.state ?? null);
         setScenarioKey(message.scenarioKey ?? null);
       }
@@ -185,6 +213,16 @@ export default function TestBoardPage({
           )}
 
           {loading && <LoadingSpinner />}
+          {(() => {
+            console.log("[test-board] Render check:", {
+              loading,
+              hasState: !!state,
+              stateType: typeof state,
+              stateValue: state,
+              isEmbed,
+            });
+            return null;
+          })()}
           {!loading && state && (
             <div className="animate-fade-in">
               <VisualBoard

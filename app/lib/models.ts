@@ -2,5 +2,5 @@
 export const NAME_MODEL = "gpt-4o-mini";
 export const FAMILY_MODEL = "gpt-4o-mini";
 export const CHARACTER_MODEL = "gpt-4.1";
-export const ANALYZE_MODEL = "gpt-4o-mini";
+export const ANALYZE_MODEL = "gpt-4o"; // gpt-5는 존재하지 않음. gpt-4o는 현재 가장 강력한 모델
 
