@@ -9,7 +9,8 @@ interface RelationPanelProps {
 }
 
 export default function RelationPanel({ relations, lang }: RelationPanelProps) {
-  if (relations.length === 0) {
+  const relationsArray = relations ?? [];
+  if (relationsArray.length === 0) {
     return (
       <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg p-6 text-center text-text-muted">
         {getUIText("visualboardNoRelations", lang)}
@@ -37,7 +38,7 @@ export default function RelationPanel({ relations, lang }: RelationPanelProps) {
       </h3>
       
       <div className="space-y-3">
-        {relations.map((relation, index) => (
+        {relationsArray.map((relation, index) => (
           <div
             key={`${relation.a}-${relation.b}-${index}`}
             className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg p-4"

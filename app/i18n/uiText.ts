@@ -2,8 +2,8 @@ import type { LangCode } from "@/app/types";
 
 const UI_TEXT = {
   appTitle: {
-    ko: "로판 아틀리에",
-    en: "Rofan Atelier",
+    ko: "로판 월드",
+    en: "Rofan World",
   },
   appSubtitle: {
     ko: "당신의 세계를 위한 이름과 설정을 빚어드립니다.",
@@ -147,24 +147,24 @@ const UI_TEXT = {
   },
   // 메타데이터
   metaTitle: {
-    ko: "로판 아틀리에 – 로맨스 판타지 세계관 이름 생성기",
-    en: "Rofan Atelier – Romance Fantasy Name Generator",
+    ko: "로판 월드 – 로맨스 판타지 세계관 이름 생성기",
+    en: "Rofan World – Romance Fantasy Name Generator",
   },
   metaDescription: {
     ko: "로맨스 판타지 세계를 위한 이름과 가문명을 빚어드립니다. 서양식 이름, 귀족 가문명, 세계관 설정까지 한 번에.",
     en: "Crafting names and family names for your romance fantasy world. Western-style names, noble family names, and worldbuilding settings all in one.",
   },
   metaOgTitle: {
-    ko: "로판 아틀리에",
-    en: "Rofan Atelier",
+    ko: "로판 월드",
+    en: "Rofan World",
   },
   metaOgDescription: {
     ko: "당신의 이야기 속 인물들의 이름과 가문명을 찾아드립니다.",
     en: "Find names and family names for the characters in your story.",
   },
   metaTwitterTitle: {
-    ko: "로판 아틀리에",
-    en: "Rofan Atelier",
+    ko: "로판 월드",
+    en: "Rofan World",
   },
   metaTwitterDescription: {
     ko: "한국 웹소설 작가를 위한 로맨스 판타지 이름·가문 생성 도구.",

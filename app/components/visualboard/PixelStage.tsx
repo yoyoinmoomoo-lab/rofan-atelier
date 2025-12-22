@@ -3,7 +3,7 @@
 import type { StoryState, LangCode } from "@/app/types";
 import type { Gender } from "./VisualBoard";
 
-type StageCharacter = StoryState["characters"][number] & { gender: Gender };
+type StageCharacter = NonNullable<StoryState["characters"]>[number] & { gender: Gender };
 
 type PixelStageProps = {
   state: StoryState;
@@ -27,7 +27,7 @@ function getCharacterEmoji(gender: Gender): string {
 // 감정을 기반으로 이모지 결정
 // 1순위: moodState.label (모델이 정해준 라벨)
 // 2순위: description 키워드 검색 (한/영 혼합)
-function getMoodEmoji(character: StoryState["characters"][0]): string {
+function getMoodEmoji(character: NonNullable<StoryState["characters"]>[0]): string {
   const label = character.moodState?.label?.toLowerCase();
   const description = character.moodState?.description?.toLowerCase() || "";
 

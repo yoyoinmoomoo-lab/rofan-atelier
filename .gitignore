@@ -44,3 +44,6 @@ next-env.d.ts
 .cursor/
 .vscode/
 .cursorrules
+
+# GPT 대화용 문서 및 테스트 파일 (GitHub에 올리지 않음)
+docs/gpt-conversations/

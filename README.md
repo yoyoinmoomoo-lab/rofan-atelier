@@ -1,6 +1,10 @@
-# 🌹 로판 네임 아틀리에
+# 🌹 Rofan World
 
 로맨스 판타지 작가들을 위한 이름 및 가문명 생성 웹앱입니다.
+
+**Current Version: v1.2.0**
+
+Compatible with Rofan Visualboard v0.2.0+
 
 ## 기능
 
@@ -51,7 +55,7 @@ NOTION_FEEDBACK_TEMPLATE_ID=your_notion_template_id_here
 **환경변수 설정 방법:**
 
 1. **프로젝트 루트 디렉토리**에 `.env.local` 파일을 생성하세요
-   - 파일 경로: `/Users/sunhapark/프로젝트/rofan-atelier/.env.local`
+   - 파일 경로: `/Users/sunhapark/프로젝트/rofan-world/.env.local`
 
 2. **OpenAI API Key**:
    - [OpenAI Platform](https://platform.openai.com/api-keys)에서 API 키 생성

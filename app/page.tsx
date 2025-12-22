@@ -137,7 +137,7 @@ function HomeContent() {
 
         {/* 피드백 박스 */}
         <section className="mt-12 border-t border-[var(--card-border)]/30 pt-6">
-          <FeedbackBox source="rofan-atelier" lang={lang} />
+          <FeedbackBox source="rofan-world" lang={lang} />
         </section>
       </main>
 

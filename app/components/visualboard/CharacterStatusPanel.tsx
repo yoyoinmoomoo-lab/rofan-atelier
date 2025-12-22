@@ -62,10 +62,15 @@ export default function CharacterStatusPanel({
                   ) : (
                     <>
                       {/* moodState.label이 있으면 표시 */}
-                      {character.moodState?.label && (
+                      {character.moodState?.label ? (
                         <p>
                           <span className="font-medium">State: </span>
                           {character.moodState.label}
+                        </p>
+                      ) : (
+                        /* Step3.1: 상태 텍스트가 빈 경우 fallback */
+                        <p className="text-xs text-[var(--text-muted)]/60 italic">
+                          (상태 요약 없음)
                         </p>
                       )}
                     </>

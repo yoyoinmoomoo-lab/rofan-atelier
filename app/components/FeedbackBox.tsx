@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { LangCode } from "../types";
 import { getUIText } from "../i18n/uiText";
 
-type FeedbackSource = "rofan-atelier" | "other";
+type FeedbackSource = "rofan-world" | "other";
 
 interface FeedbackBoxProps {
   source: FeedbackSource;
