@@ -208,26 +208,16 @@ export default function PixelStage({ state, lang, characters }: PixelStageProps)
   console.log("[PixelStage] Rendering:", {
     hasScene: !!scene,
     sceneType: scene?.type,
-    locationName: scene?.location_name,
     charactersCount: characters.length,
     characters: characters.map(c => c.name),
   });
 
   return (
-    <div className="rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm p-4 mb-4">
+    <div className="rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-sm p-3 mb-2.5">
       {/* Stage 영역 */}
       <div
         className={`relative w-full overflow-hidden rounded-xl ${backgroundClass} aspect-[3/1] min-h-[120px]`}
       >
-        {/* 배경 레이어: 장소 이름 뱃지 */}
-        {scene?.location_name && (
-          <div className="absolute top-3 left-3 z-10">
-            <span className="px-2 py-1 bg-white/80 backdrop-blur-sm text-slate-700 rounded-full text-xs font-medium shadow-sm">
-              {scene.location_name}
-            </span>
-          </div>
-        )}
-
         {/* 캐릭터 레이어: 가로로 균등 분배 */}
         {characters.length > 0 ? (
           <div className="absolute inset-0 flex items-end justify-center gap-4 px-4 pb-4">

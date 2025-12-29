@@ -18,8 +18,8 @@ import type {
 // 상수
 // ============================================================================
 
-const CAST_KEY_PREFIX = "rofan-visualboard-cast::";
-const LAST_SUCCESS_KEY_PREFIX = "rofan-visualboard-last-success::";
+const CAST_KEY_PREFIX = "vivid-chat-cast::";
+const LAST_SUCCESS_KEY_PREFIX = "vivid-chat-last-success::";
 
 // ============================================================================
 // UUID 생성

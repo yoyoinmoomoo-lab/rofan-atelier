@@ -254,7 +254,7 @@ export default function TestBoardPage({
               {getUIText("footerPoweredBy", lang)}
             </p>
             <p className="text-[10px] text-[var(--text-muted)] text-right mt-2">
-              Rofan Visualboard v{VISUALBOARD_VERSION}
+              Vivid Chat v{VISUALBOARD_VERSION}
             </p>
           </div>
         </footer>

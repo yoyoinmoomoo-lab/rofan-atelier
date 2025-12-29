@@ -23,7 +23,7 @@ Web Store 제출 시 **localhost 권한이 포함되지 않도록** 안전하게
 ### 방법 1: 스크립트 사용 (권장)
 
 ```bash
-cd "Rofan Visualboard"
+cd "Vivid Chat"
 ./scripts/package-prod.sh
 ```
 
@@ -33,7 +33,7 @@ cd "Rofan Visualboard"
 - ✅ zip에 manifest.dev.json 포함 안 됨 확인
 
 **출력:**
-- `dist/rofan-visualboard-prod.zip` 생성
+- `dist/vivid-chat-prod.zip` 생성
 
 ### 방법 2: 수동 패키징
 
@@ -48,7 +48,7 @@ cd "Rofan Visualboard"
    - options.js ✅ (있으면)
    - **manifest.dev.json ❌ (제외)**
 
-3. zip 파일명: `rofan-visualboard-prod.zip`
+3. zip 파일명: `vivid-chat-prod.zip`
 
 ---
 

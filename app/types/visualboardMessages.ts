@@ -25,9 +25,22 @@ export interface ResetStoryStateMessage {
   timestamp: number;
 }
 
+/**
+ * @deprecated ERROR_MESSAGE는 더 이상 사용하지 않습니다.
+ * 에러 메시지는 sidepanel에서만 처리하며, iframe으로 전달하지 않습니다.
+ */
+export interface ErrorMessage {
+  protocol: VisualboardProtocolVersion;
+  sender: "visualboard-sidepanel";
+  type: "ERROR_MESSAGE";
+  errorMessage: string | null; // null이면 에러 해제
+  timestamp: number;
+}
+
 export type VisualboardIncomingMessage =
   | StoryStateUpdateMessage
   | ResetStoryStateMessage;
+  // | ErrorMessage; // deprecated: 에러는 sidepanel에서만 처리
 
 /**
  * 메시지가 유효한 Visualboard 메시지인지 검증
@@ -63,6 +76,14 @@ export function isValidVisualboardMessage(
   if (msg.type === "RESET_STORY_STATE") {
     return typeof msg.timestamp === "number";
   }
+
+  // ERROR_MESSAGE는 더 이상 처리하지 않음 (deprecated)
+  // if (msg.type === "ERROR_MESSAGE") {
+  //   return (
+  //     typeof msg.timestamp === "number" &&
+  //     (msg.errorMessage === null || typeof msg.errorMessage === "string")
+  //   );
+  // }
 
   return false;
 }

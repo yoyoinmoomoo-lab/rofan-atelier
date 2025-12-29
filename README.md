@@ -4,7 +4,7 @@
 
 **Current Version: v1.2.1**
 
-Compatible with Rofan Visualboard v0.2.1+
+Compatible with Vivid Chat v0.2.1+
 
 ## 기능
 

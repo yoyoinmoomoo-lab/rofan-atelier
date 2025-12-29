@@ -282,8 +282,8 @@ const UI_TEXT = {
   },
   // 테스트 보드 관련
   testBoardTitle: {
-    ko: "Visualboard 테스트",
-    en: "Visualboard Test",
+    ko: "Vivid Chat 테스트",
+    en: "Vivid Chat Test",
   },
   testBoardDescription: {
     ko: "소설 텍스트를 입력하면 등장인물, 장면, 관계를 시각화합니다.",

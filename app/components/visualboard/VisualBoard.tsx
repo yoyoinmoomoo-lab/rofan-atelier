@@ -38,7 +38,7 @@ interface VisualBoardProps {
   disableRestore?: boolean; // Chrome Extension 모드에서는 localStorage 복구 비활성화
 }
 
-const STATE_KEY_PREFIX = "rofan-visualboard-state::";
+const STATE_KEY_PREFIX = "vivid-chat-state::";
 
 export default function VisualBoard({ 
   state, 
@@ -211,7 +211,7 @@ export default function VisualBoard({
         onStateRestore(parsed);
       }
     } catch (e) {
-      console.warn("[Rofan Visualboard] Failed to restore story state", e);
+      console.warn("[Vivid Chat] Failed to restore story state", e);
       hasLoadedStateRef.current[scenarioKeySafe] = true; // 에러가 나도 플래그 설정
     }
   }, [scenarioKey, onStateRestore, disableRestore]);
@@ -234,7 +234,7 @@ export default function VisualBoard({
       window.localStorage.setItem(key, stateString);
       lastSavedStateRef.current[scenarioKeySafe] = stateString;
     } catch (e) {
-      console.warn("[Rofan Visualboard] Failed to save story state", e);
+      console.warn("[Vivid Chat] Failed to save story state", e);
     }
   }, [scenarioKey, state]);
 
@@ -314,29 +314,36 @@ export default function VisualBoard({
           return (
             <div
               key={`scene-${index}`}
-              className={`space-y-4 ${isActive ? 'ring-2 ring-[var(--accent)] rounded-lg p-2' : ''}`}
+              className={`${isActive ? 'ring-2 ring-[var(--accent)] rounded-lg p-1.5' : ''}`}
             >
-              {/* 장면 헤더 */}
-              <div className="flex items-center gap-2">
-                <h3 className="text-lg font-semibold text-foreground">
-                  장면 {index + 1}{scenes.length > 1 ? ` / ${scenes.length}` : ''}
-                  {scene.location_name && `: ${scene.location_name}`}
-                </h3>
-                {isActive && (
-                  <span className="px-2 py-1 text-xs font-medium bg-[var(--accent)] text-white rounded">
-                    현재 장면
-                  </span>
+              {/* Scene Header 영역 - 여백 복원 */}
+              <div className="scene-header space-y-3 mb-4">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-lg font-semibold text-foreground">
+                    장면 {index + 1}{scenes.length > 1 ? ` / ${scenes.length}` : ''}
+                    {scene.location_name && `: ${scene.location_name}`}
+                  </h3>
+                  {isActive && (
+                    <span className="px-2 py-1 text-xs font-medium bg-[var(--accent)] text-white rounded">
+                      현재 장면
+                    </span>
+                  )}
+                </div>
+                {/* 장면 설명은 헤더 아래에 1회만 표시 */}
+                {scene.summary && (
+                  <p className="text-sm text-text-muted leading-relaxed mt-2">{scene.summary}</p>
                 )}
               </div>
-              {scene.summary && (
-                <p className="text-sm text-text-muted">{scene.summary}</p>
-              )}
 
               {/* 1) 상단 무대: 이미지 레이어 */}
-              <PixelStage state={sceneAsState} lang={lang} characters={sceneCharactersWithGender} />
+              <div className="pixel-stage">
+                <PixelStage state={sceneAsState} lang={lang} characters={sceneCharactersWithGender} />
+              </div>
 
-              {/* 2) 하단 텍스트 패널: 장면 + 캐릭터 상태 */}
-              <CharacterStatusPanel state={sceneAsState} lang={lang} />
+              {/* 2) 하단 텍스트 패널: 캐릭터 상태만 (컴팩트 유지) */}
+              <div className="mt-2.5">
+                <CharacterStatusPanel state={sceneAsState} lang={lang} />
+              </div>
 
               {/* 장면 구분선 (마지막 장면이 아니면) */}
               {index < scenes.length - 1 && (

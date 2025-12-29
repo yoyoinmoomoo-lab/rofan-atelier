@@ -100,7 +100,7 @@ function PrivacyContent() {
               <h2 className="text-2xl font-semibold mt-8 mb-4">Rofan.world 개인정보처리방침</h2>
               
               <p>
-                <strong>Rofan.world</strong>(이하 "서비스")는 사용자의 개인정보를 소중하게 생각하며, 관련 법령 및 Chrome 웹 스토어 사용자 데이터 정책을 준수합니다. 본 개인정보처리방침은 rofan.world에서 제공하는 모든 기능 및 Chrome 확장 프로그램(Visualboard)이 사용자의 데이터를 어떻게 수집·사용·보호하는지 설명합니다.
+                <strong>Rofan.world</strong>(이하 "서비스")는 사용자의 개인정보를 소중하게 생각하며, 관련 법령 및 Chrome 웹 스토어 사용자 데이터 정책을 준수합니다. 본 개인정보처리방침은 rofan.world에서 제공하는 모든 기능 및 Chrome 확장 프로그램(Vivid Chat)이 사용자의 데이터를 어떻게 수집·사용·보호하는지 설명합니다.
               </p>
 
               <h3 className="text-xl font-semibold mt-8 mb-4">1. 수집하는 정보</h3>
@@ -117,7 +117,7 @@ function PrivacyContent() {
                 <strong>입력된 정보는 사용자의 요청에 따라 이름·가문명을 생성하기 위해서만 일시적으로 처리됩니다.</strong>
               </p>
 
-              <h4 className="text-lg font-medium mt-6 mb-3">(2) Visualboard (Chrome Extension) 관련</h4>
+              <h4 className="text-lg font-medium mt-6 mb-3">(2) Vivid Chat (Chrome Extension) 관련</h4>
               <p>확장 프로그램은 다음 정보를 읽을 수 있습니다:</p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>사용자가 rofan.ai에서 보고 있는 <strong>채팅 텍스트</strong> 및 <strong>화면에 표시된 정보</strong></li>
@@ -135,7 +135,7 @@ function PrivacyContent() {
               <p>수집된 정보는 아래 목적에 한정하여 사용합니다.</p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>사용자 입력 기반 콘텐츠 생성 (이름, 가문명 등)</li>
-                <li>Visualboard의 <strong>장면 분석·시각화</strong></li>
+                <li>Vivid Chat의 <strong>장면 분석·시각화</strong></li>
                 <li>서비스 품질 향상 및 오류 분석</li>
                 <li>Local Storage 기반의 시각화 상태 유지 (브라우저 내부 저장)</li>
               </ul>
@@ -157,7 +157,7 @@ function PrivacyContent() {
               <h3 className="text-xl font-semibold mt-8 mb-4">4. 데이터 보관 및 보호</h3>
               <ul className="list-disc pl-6 space-y-2">
                 <li><strong>입력 텍스트는 서버에 장기 저장하지 않습니다.</strong> 분석을 위해 일시적으로 처리된 후 자동 폐기됩니다.</li>
-                <li><strong>LocalStorage</strong> - Visualboard의 무대 상태, 캐스트 정보는 사용자 브라우저 내부(LocalStorage)에만 저장됩니다.</li>
+                <li><strong>LocalStorage</strong> - Vivid Chat의 무대 상태, 캐스트 정보는 사용자 브라우저 내부(LocalStorage)에만 저장됩니다.</li>
                 <li><strong>모든 데이터 전송은 HTTPS로 암호화되어 처리됩니다.</strong></li>
               </ul>
 
@@ -168,13 +168,13 @@ function PrivacyContent() {
               <h3 className="text-xl font-semibold mt-8 mb-4">6. 사용자의 권리</h3>
               <p>사용자는 언제든지:</p>
               <ul className="list-disc pl-6 space-y-2">
-                <li>LocalStorage를 삭제하여 Visualboard 상태를 초기화할 수 있습니다.</li>
+                <li>LocalStorage를 삭제하여 Vivid Chat 상태를 초기화할 수 있습니다.</li>
                 <li>확장 프로그램을 제거하여 데이터 처리를 중단할 수 있습니다.</li>
               </ul>
 
               <h3 className="text-xl font-semibold mt-8 mb-4">7. 문의하기</h3>
               <p>문의사항은 아래 주소로 연락해 주세요.</p>
-              <p><strong>Email:</strong> moomoojojoyoyo@gmail.com</p>
+              <p><strong>Email:</strong> moomooojojoyoyo@gmail.com</p>
               <p className="mt-4"><strong>Team:</strong> Team Moomoo(팀 무무)</p>
             </div>
           ) : (
@@ -184,7 +184,7 @@ function PrivacyContent() {
               <p>
                 <strong>Rofan.world</strong> ("the Service") values your privacy and complies with applicable laws and the Chrome Web Store User Data Policy.
               </p>
-              <p>This Privacy Policy explains how the Service—including the Chrome extension "Visualboard for Rofan"—collects, uses, and protects your data.</p>
+              <p>This Privacy Policy explains how the Service—including the Chrome extension "Vivid Chat"—collects, uses, and protects your data.</p>
 
               <h3 className="text-xl font-semibold mt-8 mb-4">1. Information We Collect</h3>
 
@@ -198,7 +198,7 @@ function PrivacyContent() {
               </ul>
               <p className="mt-4">User input is processed <strong>only to generate the requested content</strong>.</p>
 
-              <h4 className="text-lg font-medium mt-6 mb-3">(2) Visualboard Chrome Extension</h4>
+              <h4 className="text-lg font-medium mt-6 mb-3">(2) Vivid Chat Chrome Extension</h4>
               <p>The extension reads:</p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>Chat text visible on <code className="bg-[var(--card-bg)] px-1 rounded">rofan.ai</code></li>
@@ -215,7 +215,7 @@ function PrivacyContent() {
               <h3 className="text-xl font-semibold mt-8 mb-4">2. How We Use Information</h3>
               <ul className="list-disc pl-6 space-y-2">
                 <li>To generate names and related content according to user input</li>
-                <li>To analyze and visualize scenes in the Visualboard tool</li>
+                <li>To analyze and visualize scenes in the Vivid Chat tool</li>
                 <li>To maintain visualization state via Local Storage</li>
                 <li>To improve service reliability and debug errors</li>
               </ul>
@@ -234,7 +234,7 @@ function PrivacyContent() {
               <h3 className="text-xl font-semibold mt-8 mb-4">4. Data Storage and Security</h3>
               <ul className="list-disc pl-6 space-y-2">
                 <li>User input is <strong>not stored permanently</strong> on rofan.world servers.</li>
-                <li>Visualboard state is stored <strong>only in the user's browser Local Storage</strong>.</li>
+                <li>Vivid Chat state is stored <strong>only in the user's browser Local Storage</strong>.</li>
                 <li>All communications use encrypted HTTPS connections.</li>
               </ul>
 
@@ -251,7 +251,7 @@ function PrivacyContent() {
 
               <h3 className="text-xl font-semibold mt-8 mb-4">7. Contact</h3>
               <p>For questions regarding this Privacy Policy:</p>
-              <p><strong>Email:</strong> moomoojojoyoyo@gmail.com</p>
+              <p><strong>Email:</strong> moomooojojoyoyo@gmail.com</p>
               <p className="mt-4"><strong>Team:</strong> Team Moomoo(팀 무무)</p>
             </div>
           )}
@@ -277,7 +277,7 @@ function PrivacyContent() {
             </Link>
             <span className="text-xs text-[var(--text-muted)] hidden md:inline">·</span>
             <a 
-              href="mailto:moomoojojoyoyo@gmail.com" 
+              href="mailto:moomooojojoyoyo@gmail.com" 
               className="text-xs text-[var(--text-muted)] hover:text-foreground transition-colors"
             >
               {lang === "ko" ? "문의하기" : "Contact"}

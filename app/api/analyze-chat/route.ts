@@ -8,62 +8,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// 캐릭터 설정 + 세계관 설명 (테스트용 하드코딩)
-const CHARACTER_AND_WORLD_BIBLE = `
-
-[기존 캐릭터 설정]
-
-페스텔 메비헤르(26) : 제 1 황태자. 남색 머리, 짙은 검은 눈, 날카로운 인상, 180대 중반의 키. 단정하고 균형 잡힌 체형. 늘 깔끔하게 차려 입으며, 약간의 귀족적 위엄이 있음. 눈빛이 차분하면서도 순간적으로 칼날처럼 날카로움.
-
-#성격 : 부드러움. 잔잔함. 무뚝뚝. 진중. 칼같음. 평판이 좋음. 인기 많음. 좋아하는 사람에게는 반말.
-
-#특징 : 쓴 차와 커피를 선호. 고기 음식을 좋아함. 편식 잘함. 검술, 체력 단련을 거르지 않음. 마법은 기본 바람 마법만 다룰 수 있음.
-
-야닉 웨트링겔(29) : 웨트링겔 가문의 장남이자 마탑의 5인중 하나. 붉은 머리, 초록색 눈, 날티나는 인상, 180대 후반의 키. 근육질, 어깨 넓음. 얼굴에는 전투나 사건에서 남은 흉터 몇 개, 그러나 매력적.
-
-#성격 : 다혈질. 싸가지. 제멋대로. 욕이 익숙함. 능글스럽고 플러팅에 능하다. 감정 표현 솔직. 즉흥적.
-
-#특징 : 마법에 소질, 소드마스터. 단 음식 좋아함. 여자 밝힘.
-
-베니스 카르틴(25) : 신전의 대사제. 긴 백색 머리, 푸른 눈. 나른하고 부드러운 인상.
-
-#성격 : 나른함. 여유로움. 느릿느릿. 단호함. 흡연자.
-
-#특징 : 신성력 능숙. 신을 맹신하지 않음.
-
-- 페스텔, 야닉, 베니스 모두 리리슈에게 호감이 있음.
-
-- 세 남자 모두 리리슈를 지켜주고 싶어함.
-
-- 릴리아나를 싫어함.
-
-리리슈 웨트링겔(21) : 웨트링겔 가문의 막내딸. 핑크색 머리. 순진한 척이 특기.
-
-릴리아나 : 웨트링겔 공작가의 2녀.
-
-페니 : 릴리아나의 시녀. 갈색 단발, 주근깨.
-
-[세계관 / 추가 고정 인물]
-
-▪︎ 웨트링겔 공작가 : 1남 2녀. 현 가주는 케슨 공작(49세). 장남 야닉, 장녀 릴리아나, 차녀 리리슈.
-
-▪︎ 마탑 : 야닉은 현 마탑 최고 책임자 5인 중 하나.
-
-▪︎ 황궁 :
-  - 현 황제(57세): 카디론 메비헤르. 페스텔의 아버지. 웨트링겔 공작가를 지속적으로 주시함.
-  - 황후: 이자벨라 메비헤르. 카디론과 금슬이 좋음.
-  - 자식 총 5명, 페스텔(장남) 아래로 동생 4명
-  - 웨트링겔 공작가를 지속적으로 주시
-
-▪︎ 황궁 릴리아나의 방 : 본궁이 아닌 별채에 위치.
-
-카디론 메비헤르(57) : 현 황제. 페스텔의 아버지. 웨트링겔 공작가를 지속적으로 주시함.
-
-이자벨라 메비헤르 : 현 황후. 카디론과 금슬이 좋음.
-
-케슨 웨트링겔(49) : 웨트링겔 공작가의 현 가주. 야닉, 릴리아나, 리리슈의 아버지.
-
-`;
+// 하드코딩 제거: botContext가 동적으로 주입됨
 
 // CORS 헤더 설정 (Chrome Extension 호출 대비)
 const corsHeaders = {
@@ -249,6 +194,21 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // botContext 파싱 (optional)
+    let botContext: { charName?: string; persona: string; worldview: string; userName?: string; userPersona?: string } | undefined = undefined;
+    if (requestBody.botContext && typeof requestBody.botContext === "object") {
+      const bc = requestBody.botContext as Record<string, unknown>;
+      if ((bc.persona && typeof bc.persona === "string") || (bc.worldview && typeof bc.worldview === "string")) {
+        botContext = {
+          charName: (bc.charName && typeof bc.charName === "string") ? bc.charName : undefined, // ✅ 추가: 캐릭터 이름
+          persona: (bc.persona && typeof bc.persona === "string") ? bc.persona : "",
+          worldview: (bc.worldview && typeof bc.worldview === "string") ? bc.worldview : "",
+          userName: (bc.userName && typeof bc.userName === "string") ? bc.userName : undefined,
+          userPersona: (bc.userPersona && typeof bc.userPersona === "string") ? bc.userPersona : undefined,
+        };
+      }
+    }
+
     if (!chatText || typeof chatText !== "string") {
       return NextResponse.json(
         { error: "chatText is required and must be a string" },
@@ -280,7 +240,17 @@ export async function POST(request: NextRequest) {
       "hasPreviousState=",
       !!previousState,
       "castHintsCount=",
-      castHints?.length ?? 0
+      castHints?.length ?? 0,
+      "hasBotContext=",
+      !!botContext,
+      "charName=",
+      botContext?.charName || "(null)",
+      "personaLen=",
+      botContext?.persona?.length ?? 0,
+      "worldviewLen=",
+      botContext?.worldview?.length ?? 0,
+      "userNamePresent=",
+      !!botContext?.userName
     );
 
     // previousState 로깅
@@ -291,33 +261,69 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // CHARACTER & WORLD BIBLE 블록 생성
-    const characterWorldBibleBlock = CHARACTER_AND_WORLD_BIBLE?.trim()
-      ? `
+    // Canonical 블록 생성 (botContext가 있을 때만)
+    let canonicalBlock = "";
+    if (botContext && (botContext.persona || botContext.worldview)) {
+      const parts: string[] = [];
+      
+      // (1) Protagonist (User)
+      if (botContext.userName || botContext.userPersona) {
+        const userParts: string[] = [];
+        if (botContext.userName) {
+          userParts.push(`name: ${botContext.userName}`);
+        }
+        if (botContext.userPersona) {
+          userParts.push(`persona:\n${botContext.userPersona}`);
+        }
+        if (userParts.length > 0) {
+          parts.push(`(1) Protagonist (User)\n${userParts.join("\n")}`);
+        }
+      }
+      
+      // (2) Bot / Character Bible
+      if (botContext.charName || botContext.persona) {
+        const charParts = [];
+        if (botContext.charName) {
+          charParts.push(`bot name: ${botContext.charName}`);
+        }
+        if (botContext.persona) {
+          charParts.push(`character persona:\n${botContext.persona}`);
+        }
+        parts.push(`(2) Bot / Character Bible\n${charParts.join('\n')}`);
+      }
+      
+      // (3) World Bible
+      if (botContext.worldview) {
+        parts.push(`(3) World Bible\nworldview:\n${botContext.worldview}`);
+      }
+      
+      if (parts.length > 0) {
+        // 텍스트 길이 안전장치 (30k 이상이면 클리핑)
+        const MAX_BIBLE_LENGTH = 30000;
+        let bibleText = parts.join("\n\n");
+        if (bibleText.length > MAX_BIBLE_LENGTH) {
+          console.warn("[analyze-chat] Bible text too long, clipping:", bibleText.length);
+          bibleText = bibleText.substring(0, MAX_BIBLE_LENGTH) + "\n[... truncated ...]";
+        }
+        
+        canonicalBlock = `
 
-[CANONICAL CHARACTER & WORLD SETUP]
+[CANONICAL CHARACTER & WORLD SETUP]  (절대적 진실/Bible)
+- If conflict with chat, Bible wins.
+- Bible에 있는 인물이 언급되면, 성격/특징을 반드시 반영하라.
 
-아래는 사용자가 제공한 고정 캐릭터 및 세계관 설정이다.
-
-등장인물 해석 및 매칭 시 이 정보를 최우선으로 참고한다.
-
-이름이 명시적으로 등장하고 실제로 행동하거나 대사를 하는 인물은 반드시 characters에 포함한다.
-
-기존 설정에 동일한 인물이 있으면 해당 캐릭터를 사용한다.
-
-기존 설정에 없는 인물이 명확히 등장한 경우에는 새 캐릭터로 생성해도 된다.
-
-${CHARACTER_AND_WORLD_BIBLE.trim()}
+${bibleText}
 
 [/CANONICAL CHARACTER & WORLD SETUP]
 
-`
-      : "";
+`;
+      }
+    }
 
     // 프롬프트 구성 (Step3: Multi-scene 지원)
     const systemPrompt = `너는 로맨스 판타지 소설의 '무대 감독'이야. 주어진 대화/텍스트를 분석해서 등장인물, 감정, 분위기, 관계를 JSON 형식으로 추출해줘.
 
-${characterWorldBibleBlock}
+${canonicalBlock}
 
 반드시 다음 JSON 구조를 정확히 따라야 해:
 
@@ -366,7 +372,10 @@ ${characterWorldBibleBlock}
 - scene.location_name은 구체적이고 생생한 장소 이름을 제공해 (모르면 빈 문자열 허용).
 - scene.backdrop_style은 배경의 분위기나 스타일을 묘사하는 짧은 문구여야 해 (모르면 빈 문자열 허용).
 - characters 배열에는 해당 장면에 등장하는 모든 주요 인물을 누락 없이 포함한다. 권장 인원은 2~8명이며, 캐릭터를 임의로 생략하지 않는다. slot은 UI 배치를 위한 힌트이며 필수 값이 아니다. slot이 없는 캐릭터는 backstage 캐릭터로 처리될 수 있다.
-- 신규 인물 포함 규칙 (중요): 지문에 고유명사로 등장하는 모든 인물은 CHARACTER & WORLD BIBLE에 없어도 반드시 characters에 포함한다. 예: "제릴", "부관 제릴", "황제", "카디론 메비헤르", "기사", "시녀" 등. 직책/호칭과 함께 언급된 인물도 포함 대상이다.
+- 신규 인물 포함 규칙 (중요): 지문에 고유명사로 등장하는 모든 인물은 CANONICAL CHARACTER & WORLD SETUP에 없어도 반드시 characters에 포함한다. 예: "제릴", "부관 제릴", "황제", "기사", "시녀" 등. 직책/호칭과 함께 언급된 인물도 포함 대상이다.
+- 주인공 식별 규칙: userName이 제공되면 해당 인물을 주인공으로 식별하고, slot을 "center"로 우선 배치하라. userName이 없으면 대화 내 {{user}}/화자/1인칭 기준으로 추론하라.
+- 이모지 추론 규칙: 각 캐릭터에 representative_emoji를 Bible의 직업/외형/키워드(황태자/기사/대사제 등) 기반으로 추론해 채워라. 예: 황태자→👑, 기사→⚔️, 대사제→⛪️, 마법사→🔮 등.
+- 민감정보 필터: cookies/userData/email/session-token 등은 절대 포함/추론/재출력하지 말 것.
 - characters 각 항목은 반드시 moodState.description에 최소 1문장 이상의 상태/행동 요약을 포함해야 해 (빈 문자열 금지).
 - characters 각 항목의 moodState.label은 다음 중 하나여야 해:
   * "joy": 기쁨, 행복, 즐거움
@@ -382,7 +391,7 @@ ${characterWorldBibleBlock}
 - dialogue_impact는 대화의 감정적 강도에 따라 결정.
 - activeSceneIndex는 마지막 장면의 인덱스 (scenes.length - 1).
 
-JSON만 반환하고, 다른 설명은 하지 마.`;
+중요: 반드시 유효한 JSON만 반환해야 한다. 설명, 주석, 마크다운 코드 블록 없이 순수 JSON만 반환하라.`;
 
     // Step4: Known Cast 블록 생성 (castHints가 있을 때만)
     let knownCastBlock = "";
@@ -488,17 +497,31 @@ ${previousStateBlock}
 - 장면을 합치지 말고, 전환 신호가 있으면 반드시 분리해라.
 - 같은 location_name은 하나의 scene으로 유지하라 (같은 장소 중복 생성 금지).
 - 캐릭터 누락 금지: 지문에 고유명사로 등장하는 모든 인물(예: "제릴", "부관 제릴", "황제", "카디론 메비헤르" 등)은 기존 설정에 없어도 반드시 characters 배열에 포함한다. 직책/호칭과 함께 언급된 인물도 포함 대상이다.
-- 장면 전환 시 캐릭터 정리: 장면(scene)이 전환되면, 해당 장면의 서술에 더 이상 등장하지 않는 인물은 무대(stage)에서 제외할 수 있다.`;
+- 장면 전환 시 캐릭터 정리: 장면(scene)이 전환되면, 해당 장면의 서술에 더 이상 등장하지 않는 인물은 무대(stage)에서 제외할 수 있다.
+
+⚠️ 반드시 유효한 JSON만 반환하라. 설명, 주석, 마크다운 코드 블록 없이 순수 JSON만 반환하라.`;
 
     // OpenAI 호출 및 파싱 함수
     const callOpenAIAndParse = async (attempt: number): Promise<StoryState> => {
       const startTime = Date.now();
       console.log(`[AnalyzeChat] Attempt ${attempt} started...`);
 
+      // 프롬프트 길이 로깅 (디버깅용)
+      if (attempt === 1) {
+        console.log(`[AnalyzeChat] Prompt lengths:`, {
+          systemPromptLen: systemPromptWithCast.length,
+          userPromptLen: userPrompt.length,
+          totalLen: systemPromptWithCast.length + userPrompt.length,
+          canonicalBlockLen: canonicalBlock.length,
+        });
+      }
+
       // OpenAI API 호출
       let completion;
       try {
         const apiStartTime = Date.now();
+        // response_format은 gpt-4o에서 지원하지만, 일부 모델에서는 문제가 될 수 있으므로 주석 처리
+        // 필요시 모델별로 조건부 적용 가능
         completion = await openai.chat.completions.create({
           model: ANALYZE_MODEL,
           messages: [
@@ -513,6 +536,7 @@ ${previousStateBlock}
           ],
           temperature: 0.7,
           max_tokens: 3000, // v0.2: 새로운 필드 추가로 토큰 수 증가
+          // response_format: { type: "json_object" }, // JSON 모드 강제 (일부 모델에서 문제 발생 가능)
         });
         const apiDuration = Date.now() - apiStartTime;
         console.log(`[AnalyzeChat] Attempt ${attempt} - OpenAI API call: ${apiDuration}ms`);
@@ -563,7 +587,10 @@ ${previousStateBlock}
         console.log(`[AnalyzeChat] Attempt ${attempt} - JSON 파싱 성공: ${parseDuration}ms`);
       } catch (parseError) {
         const parseDuration = Date.now() - parseStartTime;
+        // 파싱 실패 시 전체 응답 내용 로깅 (디버깅용)
         console.error(`[AnalyzeChat] Attempt ${attempt} - JSON 파싱 실패 (${parseDuration}ms):`, parseError);
+        console.error(`[AnalyzeChat] Attempt ${attempt} - 전체 응답 내용:`, content);
+        console.error(`[AnalyzeChat] Attempt ${attempt} - 응답 첫 200자:`, content.substring(0, 200));
         throw new Error("PARSE_ERROR");
       }
 

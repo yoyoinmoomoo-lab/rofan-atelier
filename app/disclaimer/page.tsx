@@ -92,7 +92,7 @@ function DisclaimerContent() {
 
               <h3 className="text-xl font-semibold mt-8 mb-4">1. 비공식 서비스에 대한 안내</h3>
               <p>
-                rofan.world 및 이 도메인에서 제공되는 도구들(예: 이름 생성기, 가문명 생성기, 캐릭터 이름 생성기, Visualboard 등)은 모두 개인/소규모 팀이 개발한 서드파티(Third-party) 도구입니다.
+                rofan.world 및 이 도메인에서 제공되는 도구들(예: 이름 생성기, 가문명 생성기, 캐릭터 이름 생성기, Vivid Chat 등)은 모두 개인/소규모 팀이 개발한 서드파티(Third-party) 도구입니다.
               </p>
               <p>
                 이 서비스들은 어떠한 경우에도 다음과 공식적인 제휴, 승인, 보증 관계에 있지 않습니다.
@@ -107,7 +107,7 @@ function DisclaimerContent() {
 
               <h3 className="text-xl font-semibold mt-8 mb-4">2. AI 채팅 서비스와의 관계</h3>
               <p>
-                현재 rofan.world에서 제공하는 Visualboard for Romance AI Chats 확장 프로그램 및 웹 서비스는 예시로 rofan.ai와 같은 AI 채팅 서비스의 화면에 표시된 내용을 사용자가 더 잘 '시각화'해서 볼 수 있도록 도와주는 도구입니다.
+                현재 rofan.world에서 제공하는 Vivid Chat 확장 프로그램 및 웹 서비스는 예시로 rofan.ai와 같은 AI 채팅 서비스의 화면에 표시된 내용을 사용자가 더 잘 '시각화'해서 볼 수 있도록 도와주는 도구입니다.
               </p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>해당 AI 채팅 서비스의 기능, 동작, 신뢰성, 결과물에 대해서는 저희가 책임지지 않습니다.</li>
@@ -130,7 +130,7 @@ function DisclaimerContent() {
                 이 면책 조항은 서비스의 성격과 책임 범위를 설명하기 위한 것이며, 데이터 수집·이용·제3자 제공에 관한 내용은 <Link href="/privacy" className="text-[var(--accent)] hover:underline">개인정보처리방침(Privacy Policy)</Link> 문서를 따릅니다.
               </p>
               <p>
-                Visualboard 및 이름 생성기 계열 서비스는 OpenAI API와 같은 외부 AI 서비스에 텍스트를 전송하여 결과를 생성할 수 있습니다.
+                Vivid Chat 및 이름 생성기 계열 서비스는 OpenAI API와 같은 외부 AI 서비스에 텍스트를 전송하여 결과를 생성할 수 있습니다.
               </p>
 
               <h3 className="text-xl font-semibold mt-8 mb-4">5. 서비스 변경 및 중단</h3>
@@ -145,7 +145,7 @@ function DisclaimerContent() {
               <p>
                 본 면책 조항 및 서비스 운영과 관련하여 문의가 있으신 경우 아래로 연락해 주세요.
               </p>
-              <p><strong>이메일:</strong> moomoojojoyoyo@gmail.com</p>
+              <p><strong>이메일:</strong> moomooojojoyoyo@gmail.com</p>
             </div>
           ) : (
             <div className="space-y-6">
@@ -153,7 +153,7 @@ function DisclaimerContent() {
 
               <h3 className="text-xl font-semibold mt-8 mb-4">1. Unofficial, Third-Party Tools</h3>
               <p>
-                The services provided under the domain rofan.world — including but not limited to name generators, family/house name generators, character name generators, and the Visualboard — are independent third-party tools developed by an individual or a small team.
+                The services provided under the domain rofan.world — including but not limited to name generators, family/house name generators, character name generators, and Vivid Chat — are independent third-party tools developed by an individual or a small team.
               </p>
               <p>
                 These tools are not affiliated with, endorsed by, or officially approved by:
@@ -168,7 +168,7 @@ function DisclaimerContent() {
 
               <h3 className="text-xl font-semibold mt-8 mb-4">2. Relation to AI Chat Services</h3>
               <p>
-                The Visualboard for Romance AI Chats extension and related web services provided by rofan.world are designed to help users visualize content shown on external AI chat services (e.g., rofan.ai).
+                The Vivid Chat extension and related web services provided by rofan.world are designed to help users visualize content shown on external AI chat services (e.g., rofan.ai).
               </p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>We do not control or take responsibility for how those AI services function or what results they produce.</li>
@@ -191,7 +191,7 @@ function DisclaimerContent() {
                 This Disclaimer describes the nature of the service and the scope of responsibility. For details on data collection, usage, and sharing, please refer to our <Link href="/privacy" className="text-[var(--accent)] hover:underline">Privacy Policy</Link>.
               </p>
               <p>
-                Some features (such as the Visualboard and name generators) may send text to external AI providers like OpenAI in order to generate results.
+                Some features (such as Vivid Chat and name generators) may send text to external AI providers like OpenAI in order to generate results.
               </p>
 
               <h3 className="text-xl font-semibold mt-8 mb-4">5. Service Changes and Availability</h3>
@@ -206,7 +206,7 @@ function DisclaimerContent() {
               <p>
                 If you have any questions regarding this Disclaimer or the operation of the service, please contact:
               </p>
-              <p><strong>Email:</strong> moomoojojoyoyo@gmail.com</p>
+              <p><strong>Email:</strong> moomooojojoyoyo@gmail.com</p>
             </div>
           )}
         </div>
@@ -231,7 +231,7 @@ function DisclaimerContent() {
             </Link>
             <span className="text-xs text-[var(--text-muted)] hidden md:inline">·</span>
             <a 
-              href="mailto:moomoojojoyoyo@gmail.com" 
+              href="mailto:moomooojojoyoyo@gmail.com" 
               className="text-xs text-[var(--text-muted)] hover:text-foreground transition-colors"
             >
               {lang === "ko" ? "문의하기" : "Contact"}

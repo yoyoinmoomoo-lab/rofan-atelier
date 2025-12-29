@@ -160,7 +160,7 @@ function HomeContent() {
             </Link>
             <span className="text-xs text-[var(--text-muted)] hidden md:inline">·</span>
             <a 
-              href="mailto:moomoojojoyoyo@gmail.com" 
+              href="mailto:moomooojojoyoyo@gmail.com" 
               className="text-xs text-[var(--text-muted)] hover:text-foreground transition-colors"
             >
               {lang === "ko" ? "문의하기" : "Contact"}

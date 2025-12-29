@@ -185,6 +185,13 @@ export interface AnalyzeChatRequest {
   chatText: string;
   previousState?: StoryState; // 이전 장면 상태 (선택적)
   castHints?: CastHint[]; // Step4: 기존 캐릭터 컨텍스트 (optional, 하위 호환성)
+  botContext?: { 
+    charName?: string; // 캐릭터 이름 (optional)
+    persona: string; 
+    worldview: string; 
+    userName?: string; 
+    userPersona?: string; 
+  }; // bot/persona/worldview + user 컨텍스트 (optional)
 }
 
 export interface AnalyzeChatResponse {
