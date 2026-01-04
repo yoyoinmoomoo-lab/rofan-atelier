@@ -29,6 +29,44 @@ export async function OPTIONS(request: NextRequest) {
 const MAX_CHAT_LENGTH = 50000; // 5만 자 제한
 
 /**
+ * 민감정보 마스킹 함수 (PII Redaction)
+ * chatText에 포함된 민감정보를 마스킹하여 모델에 전달
+ */
+function redactSensitiveInfo(text: string): string {
+  if (!text || typeof text !== 'string') return text;
+  
+  let redacted = text;
+  
+  // 1. Cookie 패턴 마스킹 (cookie=value, Cookie: value 등)
+  redacted = redacted.replace(/cookie\s*=\s*[^\s;,\n]+/gi, 'cookie=[REDACTED]');
+  redacted = redacted.replace(/Cookie:\s*[^\n]+/gi, 'Cookie: [REDACTED]');
+  
+  // 2. Session 패턴 마스킹 (session=value, session_id=value 등)
+  redacted = redacted.replace(/session[_\s]*id?\s*=\s*[^\s;,\n]+/gi, 'session=[REDACTED]');
+  redacted = redacted.replace(/Session[_\s]*ID?\s*[:=]\s*[^\n]+/gi, 'Session: [REDACTED]');
+  
+  // 3. Token 패턴 마스킹 (token=value, access_token=value, bearer token 등)
+  redacted = redacted.replace(/(?:access[_\s]*)?token\s*=\s*[^\s;,\n]+/gi, 'token=[REDACTED]');
+  redacted = redacted.replace(/Bearer\s+[A-Za-z0-9\-._~+/]+/gi, 'Bearer [REDACTED]');
+  redacted = redacted.replace(/Token:\s*[^\n]+/gi, 'Token: [REDACTED]');
+  
+  // 4. Authorization 패턴 마스킹 (Authorization: Bearer xxx, Authorization: Basic xxx 등)
+  redacted = redacted.replace(/Authorization:\s*[^\n]+/gi, 'Authorization: [REDACTED]');
+  redacted = redacted.replace(/authorization\s*=\s*[^\s;,\n]+/gi, 'authorization=[REDACTED]');
+  
+  // 5. Email 패턴 마스킹 (xxx@xxx.xxx 형식)
+  redacted = redacted.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[EMAIL_REDACTED]');
+  
+  // 6. API Key 패턴 마스킹 (api_key=value, apikey=value 등)
+  redacted = redacted.replace(/api[_\s]*key\s*=\s*[^\s;,\n]+/gi, 'api_key=[REDACTED]');
+  
+  // 7. Password 패턴 마스킹 (password=value, pwd=value 등)
+  redacted = redacted.replace(/(?:password|pwd|pass)\s*=\s*[^\s;,\n]+/gi, 'password=[REDACTED]');
+  
+  return redacted;
+}
+
+/**
  * Step3.1: 인접 중복 scene 병합 함수
  * 같은 location_name을 가진 인접한 scene들을 하나로 병합
  */
@@ -232,11 +270,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // ✅ 민감정보 마스킹 (PII Redaction)
+    const redactedChatText = redactSensitiveInfo(trimmedChatText);
+    
+    // 마스킹이 적용되었는지 로깅 (디버깅용, 실제 텍스트는 로그하지 않음)
+    if (redactedChatText !== trimmedChatText) {
+      console.log('[AnalyzeChat] Sensitive information redacted from chatText');
+    }
+
     // 로깅 추가
     console.log(
       "[analyze-chat] Request received",
       "textLength=",
-      trimmedChatText.length,
+      redactedChatText.length,
       "hasPreviousState=",
       !!previousState,
       "castHintsCount=",
@@ -350,11 +396,19 @@ ${canonicalBlock}
   "activeSceneIndex": 0
 }
 
+⚠️ 중요: scenes 배열 누적 금지 (절대 위반 금지):
+- scenes 배열은 오직 이번 요청의 [분석할 소설 텍스트]에서 등장하는 장면만 포함한다.
+- previousState의 scenes를 누적/합치지 마라. 절대 이전 scenes를 새 scenes 배열에 포함하지 마라.
+- previousState는 캐릭터의 연속성(refId/이름/성격/외형 일관성) 유지에만 사용한다.
+- 장소/배경이 바뀌었으면 이전 장소는 scenes에서 제외한다.
+- 결과는 "히스토리"가 아니라 현재 텍스트의 스냅샷이다.
+- 예: 지문1에서 "왕궁" 장면이 있었고, 지문2에서 "숲" 장면이 나왔다면, scenes 배열에는 "숲" 장면만 포함해야 한다. "왕궁" 장면은 포함하지 마라.
+
 중요 규칙 (누락 금지):
 - 원문을 요약해서 장면을 줄이지 말고, 장면 수를 보존하라.
 - 한 지문에 여러 장면(장소/시간 전환)이 있으면 반드시 scenes 배열로 분리해라.
 - 전환 신호(한편/그 시각/장소 이동/시간 점프)가 있으면 반드시 분리해라.
-- 결과는 scenes 배열로 모든 장면을 포함해야 한다.
+- 결과는 scenes 배열로 모든 장면을 포함해야 한다 (단, 현재 텍스트의 장면만).
 - 각 scene은 해당 장면에 등장한 캐릭터만 넣기 (전체 캐릭터를 매 scene에 복붙 금지).
 - 장면을 합치지 말 것.
 - 캐릭터 누락 금지: 지문에 고유명사로 등장하는 모든 인물(예: "제릴", "부관 제릴", "황제", "기사" 등)은 기존 설정에 없어도 반드시 characters 배열에 포함한다. 직책이나 호칭과 함께 언급된 인물도 포함 대상이다.
@@ -375,7 +429,7 @@ ${canonicalBlock}
 - 신규 인물 포함 규칙 (중요): 지문에 고유명사로 등장하는 모든 인물은 CANONICAL CHARACTER & WORLD SETUP에 없어도 반드시 characters에 포함한다. 예: "제릴", "부관 제릴", "황제", "기사", "시녀" 등. 직책/호칭과 함께 언급된 인물도 포함 대상이다.
 - 주인공 식별 규칙: userName이 제공되면 해당 인물을 주인공으로 식별하고, slot을 "center"로 우선 배치하라. userName이 없으면 대화 내 {{user}}/화자/1인칭 기준으로 추론하라.
 - 이모지 추론 규칙: 각 캐릭터에 representative_emoji를 Bible의 직업/외형/키워드(황태자/기사/대사제 등) 기반으로 추론해 채워라. 예: 황태자→👑, 기사→⚔️, 대사제→⛪️, 마법사→🔮 등.
-- 민감정보 필터: cookies/userData/email/session-token 등은 절대 포함/추론/재출력하지 말 것.
+- 개인정보 보호: 입력 텍스트에 포함된 개인식별정보(PII)나 인증정보(토큰/쿠키 등)는 출력에 포함하지 말 것. 출력은 제공된 이야기(서사) 내용만 반영하고, 브라우저/세션/계정 정보는 언급하지 말 것.
 - characters 각 항목은 반드시 moodState.description에 최소 1문장 이상의 상태/행동 요약을 포함해야 해 (빈 문자열 금지).
 - characters 각 항목의 moodState.label은 다음 중 하나여야 해:
   * "joy": 기쁨, 행복, 즐거움
@@ -449,8 +503,16 @@ ${knownCastJson}
           2
         )}\n\n위 상태를 기반으로 아래 새 텍스트를 반영해서 '업데이트된' StoryState를 만들어줘.
 
+⚠️ 중요: scenes 배열 누적 금지 규칙 (절대 위반 금지):
+- scenes 배열은 오직 이번 요청의 [분석할 소설 텍스트]에서 등장하는 장면만 포함한다.
+- previousState의 scenes를 누적/합치지 마라. 절대 이전 scenes를 새 scenes 배열에 포함하지 마라.
+- previousState는 캐릭터의 연속성(refId/이름/성격/외형 일관성) 유지에만 사용한다.
+- 장소/배경이 바뀌었으면 이전 장소는 scenes에서 제외한다.
+- 결과는 "히스토리"가 아니라 현재 텍스트의 스냅샷이다.
+- 예: 지문1에서 "왕궁" 장면이 있었고, 지문2에서 "숲" 장면이 나왔다면, scenes 배열에는 "숲" 장면만 포함해야 한다. "왕궁" 장면은 포함하지 마라.
+
 중요한 업데이트 규칙:
-- 언급되지 않은 캐릭터/배경/관계는 그대로 유지해
+- 언급되지 않은 캐릭터/배경/관계는 그대로 유지해 (단, scenes 배열에는 현재 텍스트의 장면만 포함)
 - 장소가 바뀌면 scene.location_name과 scene.backdrop_style을 새로 업데이트해
 - 캐릭터의 감정이 바뀌면 moodState.label과 moodState.description을 새 텍스트에 맞게 업데이트해
 - 이름이나 역할이 바뀌면 그 부분만 수정해
@@ -462,9 +524,15 @@ ${knownCastJson}
 
 """
 
-${trimmedChatText}
+${redactedChatText}
 
 """
+
+⚠️ 중요: 입력 텍스트는 [USER]/[AI] 섹션이 함께 포함될 수 있습니다.
+- [USER] 섹션: 사용자(주인공)의 대사/행동/사고
+- [AI] 섹션: AI(캐릭터)의 대사/행동/사고
+- 현재 장면/등장인물/행동은 [USER]와 [AI] 둘 다를 근거로 추출하라.
+- [USER]와 [AI]가 모두 있으면, 두 관점을 모두 고려하여 통합된 장면을 구성하라.
 
 ${previousStateBlock}
 
@@ -492,6 +560,14 @@ ${previousStateBlock}
   ],
   "activeSceneIndex": 0
 }
+
+⚠️ 중요: scenes 배열 누적 금지 (절대 위반 금지):
+- scenes 배열은 오직 이번 요청의 [분석할 소설 텍스트]에서 등장하는 장면만 포함한다.
+- previousState의 scenes를 누적/합치지 마라. 절대 이전 scenes를 새 scenes 배열에 포함하지 마라.
+- previousState는 캐릭터의 연속성(refId/이름/성격/외형 일관성) 유지에만 사용한다.
+- 장소/배경이 바뀌었으면 이전 장소는 scenes에서 제외한다.
+- 결과는 "히스토리"가 아니라 현재 텍스트의 스냅샷이다.
+- 예: 지문1에서 "왕궁" 장면이 있었고, 지문2에서 "숲" 장면이 나왔다면, scenes 배열에는 "숲" 장면만 포함해야 한다. "왕궁" 장면은 포함하지 마라.
 
 중요 규칙:
 - 장면을 합치지 말고, 전환 신호가 있으면 반드시 분리해라.
@@ -557,14 +633,22 @@ ${previousStateBlock}
             : "알 수 없는 오류";
 
         console.error(`[AnalyzeChat] Attempt ${attempt} - OpenAI API 오류 (status: ${status}): ${message}`);
-        throw new Error("OPENAI_ERROR");
+        throw {
+          type: "STANDARD_ERROR",
+          code: "OPENAI_API_ERROR",
+          message: `OpenAI API error: ${message}`,
+        };
       }
 
       const content = completion.choices[0]?.message?.content;
       if (!content) {
         const duration = Date.now() - startTime;
         console.error(`[AnalyzeChat] Attempt ${attempt} - OpenAI 응답이 비어있음 (${duration}ms):`, completion);
-        throw new Error("EMPTY_RESPONSE");
+        throw {
+          type: "STANDARD_ERROR",
+          code: "EMPTY_RESPONSE",
+          message: "Empty response from OpenAI",
+        };
       }
 
       // 로깅: 원본 응답 (Step3: 길이만 로깅, 전문은 생략)
@@ -575,10 +659,16 @@ ${previousStateBlock}
         });
       }
 
-      // JSON 파싱
+      // ✅ JSON 파싱 (표준화된 에러 응답으로 처리)
       const parseStartTime = Date.now();
       let repaired: string;
       let parsed: unknown;
+      
+      // 모델 거부 응답 감지 ("I can't assist", "I'm sorry" 등)
+      const isModelRefusal = /I\s+(can'?t|cannot|am unable to|won'?t)\s+assist/i.test(content) ||
+                            /I'?m\s+sorry/i.test(content) ||
+                            /I\s+can'?t\s+help/i.test(content);
+      
       try {
         // jsonrepair로 JSON 복구 시도
         repaired = jsonrepair(content);
@@ -587,18 +677,36 @@ ${previousStateBlock}
         console.log(`[AnalyzeChat] Attempt ${attempt} - JSON 파싱 성공: ${parseDuration}ms`);
       } catch (parseError) {
         const parseDuration = Date.now() - parseStartTime;
-        // 파싱 실패 시 전체 응답 내용 로깅 (디버깅용)
+        // 파싱 실패 시 rawPreview 생성 (PII 방지: 길이 제한)
+        const rawPreview = content.substring(0, 300).replace(/\n/g, ' ').trim();
+        
         console.error(`[AnalyzeChat] Attempt ${attempt} - JSON 파싱 실패 (${parseDuration}ms):`, parseError);
-        console.error(`[AnalyzeChat] Attempt ${attempt} - 전체 응답 내용:`, content);
-        console.error(`[AnalyzeChat] Attempt ${attempt} - 응답 첫 200자:`, content.substring(0, 200));
-        throw new Error("PARSE_ERROR");
+        console.error(`[AnalyzeChat] Attempt ${attempt} - 응답 첫 300자:`, rawPreview);
+        
+        // ✅ 표준화된 에러 응답 반환 (throw 대신)
+        const errorCode = isModelRefusal ? "MODEL_REFUSAL" : "PARSE_ERROR";
+        const errorMessage = isModelRefusal 
+          ? "Model refused to process the request."
+          : "Model output was not valid JSON.";
+        
+        // 에러 응답을 반환하기 위해 특별한 에러 객체 사용
+        throw { 
+          type: "STANDARD_ERROR",
+          code: errorCode,
+          message: errorMessage,
+          rawPreview: rawPreview,
+        };
       }
 
       // StoryState 구조 검증 및 변환 (Step3: scenes[] 우선, v1 변환)
       if (typeof parsed !== "object" || parsed === null) {
         const duration = Date.now() - startTime;
         console.error(`[AnalyzeChat] Attempt ${attempt} - 응답 타입 오류: ${typeof parsed} (${duration}ms)`);
-        throw new Error("INVALID_TYPE");
+        throw {
+          type: "STANDARD_ERROR",
+          code: "SCHEMA_ERROR",
+          message: "Model JSON did not match expected schema.",
+        };
       }
 
       const obj = parsed as Record<string, unknown>;
@@ -611,7 +719,11 @@ ${previousStateBlock}
         // v2 형식: scenes[] 배열
         scenes = obj.scenes.map((sceneItem: unknown, index: number) => {
           if (typeof sceneItem !== "object" || sceneItem === null) {
-            throw new Error(`INVALID_SCENE_ITEM_${index}`);
+            throw {
+              type: "STANDARD_ERROR",
+              code: "SCHEMA_ERROR",
+              message: `Invalid scene item at index ${index}`,
+            };
           }
           const s = sceneItem as Record<string, unknown>;
           
@@ -621,7 +733,11 @@ ${previousStateBlock}
             typeof s.type !== "string" ||
             !["castle", "room", "garden", "hall", "carriage", "forest"].includes(s.type)
           ) {
-            throw new Error(`INVALID_SCENE_FIELDS_${index}`);
+            throw {
+              type: "STANDARD_ERROR",
+              code: "SCHEMA_ERROR",
+              message: `Invalid scene fields at index ${index}`,
+            };
           }
 
           // 선택적 필드 파싱 (빈 값 허용)
@@ -630,15 +746,27 @@ ${previousStateBlock}
 
           // characters 검증 (각 scene별)
           if (!Array.isArray(s.characters)) {
-            throw new Error(`INVALID_SCENE_CHARACTERS_${index}`);
+            throw {
+              type: "STANDARD_ERROR",
+              code: "SCHEMA_ERROR",
+              message: `Invalid scene characters at index ${index}`,
+            };
           }
           const characters = s.characters.map((char: unknown, charIndex: number) => {
             if (typeof char !== "object" || char === null) {
-              throw new Error(`INVALID_CHARACTER_ITEM_${index}`);
+              throw {
+                type: "STANDARD_ERROR",
+                code: "SCHEMA_ERROR",
+                message: `Invalid character item at scene ${index}, character ${charIndex}`,
+              };
             }
             const c = char as Record<string, unknown>;
             if (typeof c.name !== "string") {
-              throw new Error(`INVALID_CHARACTER_FIELDS_${index}`);
+              throw {
+                type: "STANDARD_ERROR",
+                code: "SCHEMA_ERROR",
+                message: `Invalid character fields at scene ${index}, character ${charIndex}`,
+              };
             }
             
             // slot은 optional (없으면 undefined로 처리)
@@ -712,7 +840,11 @@ ${previousStateBlock}
             typeof s.dialogue_impact !== "string" ||
             !["low", "medium", "high"].includes(s.dialogue_impact)
           ) {
-            throw new Error(`INVALID_DIALOGUE_IMPACT_${index}`);
+            throw {
+              type: "STANDARD_ERROR",
+              code: "SCHEMA_ERROR",
+              message: `Invalid dialogue_impact at scene ${index}`,
+            };
           }
 
           return {
@@ -755,7 +887,11 @@ ${previousStateBlock}
           typeof scene.type !== "string" ||
           !["castle", "room", "garden", "hall", "carriage", "forest"].includes(scene.type)
         ) {
-          throw new Error("INVALID_SCENE_FIELDS");
+          throw {
+            type: "STANDARD_ERROR",
+            code: "SCHEMA_ERROR",
+            message: "Invalid scene fields in v1 format",
+          };
         }
 
         // v1 필드 파싱
@@ -764,15 +900,27 @@ ${previousStateBlock}
 
         // characters 검증
         if (!Array.isArray(obj.characters)) {
-          throw new Error("INVALID_CHARACTERS");
+          throw {
+            type: "STANDARD_ERROR",
+            code: "SCHEMA_ERROR",
+            message: "Invalid characters array in v1 format",
+          };
         }
         const characters = obj.characters.map((char: unknown) => {
           if (typeof char !== "object" || char === null) {
-            throw new Error("INVALID_CHARACTER_ITEM");
+            throw {
+              type: "STANDARD_ERROR",
+              code: "SCHEMA_ERROR",
+              message: "Invalid character item in v1 format",
+            };
           }
           const c = char as Record<string, unknown>;
           if (typeof c.name !== "string") {
-            throw new Error("INVALID_CHARACTER_FIELDS");
+            throw {
+              type: "STANDARD_ERROR",
+              code: "SCHEMA_ERROR",
+              message: "Invalid character fields in v1 format",
+            };
           }
           
           // slot은 optional (없으면 undefined로 처리)
@@ -812,7 +960,11 @@ ${previousStateBlock}
           typeof obj.dialogue_impact !== "string" ||
           !["low", "medium", "high"].includes(obj.dialogue_impact)
         ) {
-          throw new Error("INVALID_DIALOGUE_IMPACT");
+          throw {
+            type: "STANDARD_ERROR",
+            code: "SCHEMA_ERROR",
+            message: "Invalid dialogue_impact in v1 format",
+          };
         }
 
         // v1 → v2 변환: scenes 배열로 변환
@@ -826,12 +978,20 @@ ${previousStateBlock}
         }];
         activeSceneIndex = 0; // v1 변환 시 첫 번째(유일한) 장면
       } else {
-        throw new Error("INVALID_RESPONSE_FORMAT");
+        throw {
+          type: "STANDARD_ERROR",
+          code: "SCHEMA_ERROR",
+          message: "Invalid response format: missing scenes and scene",
+        };
       }
 
       // 최종 검증: scenes는 필수
       if (!scenes || scenes.length === 0) {
-        throw new Error("INVALID_SCENES");
+        throw {
+          type: "STANDARD_ERROR",
+          code: "SCHEMA_ERROR",
+          message: "Model JSON did not match expected schema: missing scenes array.",
+        };
       }
 
       // Step3.1: 인접 중복 scene 병합 (postprocess)
@@ -869,13 +1029,36 @@ ${previousStateBlock}
     try {
       state = await callOpenAIAndParse(1);
     } catch (error) {
+      // ✅ 표준화된 에러 응답 처리
+      if (error && typeof error === "object" && "type" in error && error.type === "STANDARD_ERROR") {
+        const standardError = error as unknown as { code: string; message: string; rawPreview?: string };
+        console.error(`[AnalyzeChat] Standard error detected:`, standardError.code);
+        return NextResponse.json(
+          {
+            ok: false,
+            error: {
+              code: standardError.code,
+              message: standardError.message,
+              rawPreview: standardError.rawPreview,
+            },
+          },
+          { status: 200, headers: corsHeaders }
+        );
+      }
+
       const errorMessage = error instanceof Error ? error.message : "UNKNOWN";
 
       // OpenAI API 오류나 빈 응답은 재시도하지 않음
       if (errorMessage === "OPENAI_ERROR" || errorMessage === "EMPTY_RESPONSE") {
         return NextResponse.json(
-          { error: errorMessage === "OPENAI_ERROR" ? "OpenAI API error" : "Empty response from OpenAI" },
-          { status: 500, headers: corsHeaders }
+          {
+            ok: false,
+            error: {
+              code: errorMessage === "OPENAI_ERROR" ? "OPENAI_API_ERROR" : "EMPTY_RESPONSE",
+              message: errorMessage === "OPENAI_ERROR" ? "OpenAI API error" : "Empty response from OpenAI",
+            },
+          },
+          { status: 200, headers: corsHeaders }
         );
       }
 
@@ -887,18 +1070,45 @@ ${previousStateBlock}
         const retryDuration = Date.now() - retryStartTime;
         console.log(`[AnalyzeChat] 재시도 성공 (재시도 소요: ${retryDuration}ms)`);
       } catch (retryError) {
+        // ✅ 재시도 실패 시에도 표준화된 에러 응답
+        if (retryError && typeof retryError === "object" && "type" in retryError && retryError.type === "STANDARD_ERROR") {
+          const standardError = retryError as unknown as { code: string; message: string; rawPreview?: string };
+          console.error(`[AnalyzeChat] 2nd attempt also failed with standard error:`, standardError.code);
+          return NextResponse.json(
+            {
+              ok: false,
+              error: {
+                code: standardError.code,
+                message: standardError.message,
+                rawPreview: standardError.rawPreview,
+              },
+            },
+            { status: 200, headers: corsHeaders }
+          );
+        }
+        
         const retryErrorMsg = retryError instanceof Error ? retryError.message : "UNKNOWN";
         const retryDuration = Date.now() - retryStartTime;
         console.error(`[AnalyzeChat] 2nd attempt also failed (${retryErrorMsg}, 재시도 소요: ${retryDuration}ms)`);
         console.error(`[AnalyzeChat] 재시도 에러 상세:`, retryError);
         return NextResponse.json(
-          { error: "PARSE_FAILED" },
+          {
+            ok: false,
+            error: {
+              code: "PARSE_FAILED",
+              message: "Failed to parse model response after retry.",
+            },
+          },
           { status: 200, headers: corsHeaders }
         );
       }
     }
 
-    const response: AnalyzeChatResponse = { state };
+    // ✅ 성공 응답: 표준화된 형식 { ok: true, data: { state } }
+    const response = {
+      ok: true,
+      data: { state },
+    };
     return NextResponse.json(response, { headers: corsHeaders });
   } catch (error) {
     console.error("[AnalyzeChat] API error:", error);
